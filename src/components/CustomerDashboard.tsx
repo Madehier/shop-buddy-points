@@ -125,7 +125,6 @@ export function CustomerDashboard() {
       .select('*')
       .eq('customer_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(10)
 
     if (error) {
       console.error('Error fetching transactions:', error)
@@ -377,10 +376,11 @@ export function CustomerDashboard() {
 
         {/* Rewards and Claims */}
         <Tabs defaultValue="rewards" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="active-claims">Aktive Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
-            <TabsTrigger value="history">Historie</TabsTrigger>
+            <TabsTrigger value="points-history">Meine Punkte</TabsTrigger>
+            <TabsTrigger value="history">Claim-Historie</TabsTrigger>
           </TabsList>
 
           <TabsContent value="rewards">
@@ -503,6 +503,84 @@ export function CustomerDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="points-history">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  Meine Punkte-Historie
+                </CardTitle>
+                <CardDescription>
+                  Übersicht über alle Ihre Punkteaktivitäten
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Current Points Balance */}
+                <div className="mb-6 p-4 border rounded-lg bg-gradient-to-r from-dorfladen-green/10 to-dorfladen-light-green/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-lg">Aktueller Punktestand</h3>
+                      <p className="text-sm text-muted-foreground">Verfügbare Punkte für Belohnungen</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-dorfladen-green">{customer.points}</div>
+                      <div className="text-sm text-muted-foreground">von {customer.total_points} gesammelten Punkten</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transaction History */}
+                <div className="space-y-3">
+                  <h4 className="font-medium">Letzte Aktivitäten</h4>
+                  {transactions.length === 0 ? (
+                    <div className="text-center py-8">
+                      <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Noch keine Punkteaktivitäten vorhanden</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Ihre ersten Punkte erhalten Sie beim nächsten Einkauf
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {transactions.map((transaction) => (
+                        <div
+                          key={transaction.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-2 h-2 rounded-full ${
+                              transaction.type === 'purchase' ? 'bg-green-500' : 'bg-red-500'
+                            }`} />
+                            <div>
+                              <p className="font-medium text-sm">{transaction.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(transaction.created_at).toLocaleDateString('de-DE', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className={`font-bold ${
+                              transaction.points_earned >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {transaction.points_earned >= 0 ? '+' : ''}{transaction.points_earned}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Punkte</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="history">
             <Card>
               <CardHeader>
@@ -547,49 +625,6 @@ export function CustomerDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Transaction History */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5" />
-              Letzte Aktivitäten
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {transactions.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  Noch keine Transaktionen vorhanden
-                </p>
-              ) : (
-                transactions.map((transaction) => (
-                  <div key={transaction.id}>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(transaction.created_at).toLocaleDateString('de-DE')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {transaction.amount > 0 ? `€${transaction.amount.toFixed(2)}` : ''}
-                        </p>
-                        <p className={`text-sm ${
-                          transaction.points_earned > 0 ? 'text-success' : 'text-destructive'
-                        }`}>
-                          {transaction.points_earned > 0 ? '+' : ''}{transaction.points_earned} Punkte
-                        </p>
-                      </div>
-                    </div>
-                    <Separator className="mt-4" />
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Active Content Block */}
         {contentBlock && (

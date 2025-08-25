@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock, Filter, Eye } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -56,16 +56,39 @@ interface Claim {
   updated_at: string
 }
 
+interface Transaction {
+  id: string
+  customer_id: string
+  amount: number
+  points_earned: number
+  type: 'purchase' | 'redemption'
+  description: string
+  created_at: string
+  customer?: {
+    id: string
+    name: string
+    email: string
+  }
+}
+
 export function AdminDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState({
     totalCustomers: 0,
     totalPoints: 0,
     totalTransactions: 0
   })
+  const [transactionFilters, setTransactionFilters] = useState({
+    customer: '',
+    type: '',
+    dateFrom: '',
+    dateTo: ''
+  })
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [newReward, setNewReward] = useState({
     name: '',
@@ -100,6 +123,7 @@ export function AdminDashboard() {
       fetchRewards(),
       fetchContentBlocks(),
       fetchClaims(),
+      fetchTransactions(),
       fetchStats()
     ])
     setLoading(false)
@@ -154,6 +178,22 @@ export function AdminDashboard() {
       console.error('Error fetching claims:', error)
     } else {
       setClaims((data as Claim[]) || [])
+    }
+  }
+
+  const fetchTransactions = async () => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(`
+        *,
+        customer:customers(id, name, email)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching transactions:', error)
+    } else {
+      setTransactions((data as Transaction[]) || [])
     }
   }
 
@@ -641,10 +681,11 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="claims">Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
+            <TabsTrigger value="history">Punkte-Historie</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
@@ -817,6 +858,205 @@ export function AdminDashboard() {
                 </Card>
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <div className="space-y-4">
+              {selectedCustomerId ? (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <History className="w-5 h-5" />
+                          Kundendetails - {customers.find(c => c.id === selectedCustomerId)?.name}
+                        </CardTitle>
+                        <CardDescription>
+                          Alle Transaktionen dieses Kunden
+                        </CardDescription>
+                      </div>
+                      <Button variant="outline" onClick={() => setSelectedCustomerId(null)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Zurück zur Übersicht
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Datum</TableHead>
+                          <TableHead>Typ</TableHead>
+                          <TableHead>Punkte</TableHead>
+                          <TableHead>Beschreibung</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {transactions
+                          .filter(t => t.customer_id === selectedCustomerId)
+                          .map((transaction) => (
+                            <TableRow key={transaction.id}>
+                              <TableCell>
+                                {new Date(transaction.created_at).toLocaleDateString('de-DE', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={transaction.type === 'purchase' ? 'default' : 'secondary'}>
+                                  {transaction.type === 'purchase' ? 'Einkauf' : 'Einlösung'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span className={transaction.points_earned >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                  {transaction.points_earned >= 0 ? '+' : ''}{transaction.points_earned}
+                                </span>
+                              </TableCell>
+                              <TableCell>{transaction.description}</TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <History className="w-5 h-5" />
+                      Punkte-Historie
+                    </CardTitle>
+                    <CardDescription>
+                      Alle Punktevergaben und -einlösungen verwalten
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Filters */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 border rounded-lg">
+                      <div className="space-y-2">
+                        <Label>Kunde</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={transactionFilters.customer}
+                          onChange={(e) => setTransactionFilters({...transactionFilters, customer: e.target.value})}
+                        >
+                          <option value="">Alle Kunden</option>
+                          {customers.map(customer => (
+                            <option key={customer.id} value={customer.id}>{customer.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Typ</Label>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={transactionFilters.type}
+                          onChange={(e) => setTransactionFilters({...transactionFilters, type: e.target.value})}
+                        >
+                          <option value="">Alle Typen</option>
+                          <option value="purchase">Einkauf</option>
+                          <option value="redemption">Einlösung</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Von</Label>
+                        <Input
+                          type="date"
+                          value={transactionFilters.dateFrom}
+                          onChange={(e) => setTransactionFilters({...transactionFilters, dateFrom: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Bis</Label>
+                        <Input
+                          type="date"
+                          value={transactionFilters.dateTo}
+                          onChange={(e) => setTransactionFilters({...transactionFilters, dateTo: e.target.value})}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Transactions Table */}
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Kunde</TableHead>
+                          <TableHead>Datum</TableHead>
+                          <TableHead>Typ</TableHead>
+                          <TableHead>Punkte</TableHead>
+                          <TableHead>Beschreibung</TableHead>
+                          <TableHead>Aktionen</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {transactions
+                          .filter(transaction => {
+                            if (transactionFilters.customer && transaction.customer_id !== transactionFilters.customer) return false
+                            if (transactionFilters.type && transaction.type !== transactionFilters.type) return false
+                            if (transactionFilters.dateFrom) {
+                              const transactionDate = new Date(transaction.created_at).toISOString().split('T')[0]
+                              if (transactionDate < transactionFilters.dateFrom) return false
+                            }
+                            if (transactionFilters.dateTo) {
+                              const transactionDate = new Date(transaction.created_at).toISOString().split('T')[0]
+                              if (transactionDate > transactionFilters.dateTo) return false
+                            }
+                            return true
+                          })
+                          .map((transaction) => {
+                            const customer = customers.find(c => c.id === transaction.customer_id)
+                            return (
+                              <TableRow key={transaction.id}>
+                                <TableCell className="font-medium">
+                                  <button
+                                    onClick={() => setSelectedCustomerId(transaction.customer_id)}
+                                    className="text-blue-600 hover:underline"
+                                  >
+                                    {customer?.name || 'Unbekannt'}
+                                  </button>
+                                </TableCell>
+                                <TableCell>
+                                  {new Date(transaction.created_at).toLocaleDateString('de-DE', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={transaction.type === 'purchase' ? 'default' : 'secondary'}>
+                                    {transaction.type === 'purchase' ? 'Einkauf' : 'Einlösung'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className={transaction.points_earned >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                    {transaction.points_earned >= 0 ? '+' : ''}{transaction.points_earned}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{transaction.description}</TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedCustomerId(transaction.customer_id)}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Details
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          })}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="rewards">
