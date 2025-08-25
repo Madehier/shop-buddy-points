@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
 import { QRScanner } from '@/components/QRScanner'
 
 interface Customer {
@@ -50,6 +51,7 @@ export function AdminDashboard() {
   const [scannedCustomerId, setScannedCustomerId] = useState<string | null>(null)
   const [scannedCustomer, setScannedCustomer] = useState<Customer | null>(null)
   const { toast } = useToast()
+  const { signOut } = useAuth()
 
   useEffect(() => {
     fetchData()
@@ -310,6 +312,10 @@ export function AdminDashboard() {
             <h1 className="text-3xl font-bold text-loyalty-gold">Admin Dashboard</h1>
             <p className="text-muted-foreground">Verwalten Sie Ihr Loyalty-Programm</p>
           </div>
+          <Button variant="outline" onClick={signOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Abmelden
+          </Button>
         </div>
 
         {/* Stats Cards */}
