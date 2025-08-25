@@ -1328,6 +1328,43 @@ export function AdminDashboard() {
             </div>
           </TabsContent>
 
+          <TabsContent value="badges">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Abzeichen-Übersicht</CardTitle>
+                    <CardDescription>
+                      Alle verfügbaren Abzeichen und ihre Erreichungsstatistiken
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Beschreibung</TableHead>
+                        <TableHead>Bedingung</TableHead>
+                        <TableHead>Erreicht von</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          Keine Abzeichen-Daten verfügbar
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="content">
             <div className="space-y-6">
               <div className="flex justify-between items-center">

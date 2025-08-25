@@ -14,6 +14,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
 import { RankDisplay } from '@/components/RankDisplay'
 import { RewardCard } from '@/components/RewardCard'
+import { BadgeDisplay } from '@/components/BadgeDisplay'
 
 interface Customer {
   id: string
@@ -51,6 +52,7 @@ interface Claim {
   reward_description: string
   created_at: string
   updated_at: string
+  picked_up?: boolean
 }
 
 interface ContentBlock {
@@ -65,10 +67,12 @@ interface ContentBlock {
 
 export function CustomerDashboard() {
   const [customer, setCustomer] = useState<Customer | null>(null)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
-  const [contentBlock, setContentBlock] = useState<ContentBlock | null>(null)
+  const [activeContentBlock, setActiveContentBlock] = useState<ContentBlock | null>(null)
+  const [badges, setBadges] = useState<any[]>([])
+  const [customerBadges, setCustomerBadges] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const { user, signOut } = useAuth()
   const { toast } = useToast()
@@ -80,6 +84,8 @@ export function CustomerDashboard() {
       fetchRewards()
       fetchClaims()
       fetchActiveContentBlock()
+      fetchBadges()
+      fetchCustomerBadges()
     }
   }, [user])
 
@@ -166,18 +172,61 @@ export function CustomerDashboard() {
   }
 
   const fetchActiveContentBlock = async () => {
-    const { data, error } = await supabase
-      .from('content_blocks')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    try {
+      const { data, error } = await supabase
+        .from('content_blocks')
+        .select('*')
+        .eq('active', true)
+        .single()
 
-    if (error) {
-      console.error('Error fetching content block:', error)
-    } else if (data) {
-      setContentBlock(data)
+      if (error) {
+        console.log('No active content block found')
+        return
+      }
+
+      setActiveContentBlock(data)
+    } catch (error) {
+      console.error('Error fetching active content block:', error)
+    }
+  }
+
+  const fetchBadges = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('active', true)
+        .order('name')
+
+      if (error) {
+        console.error('Error fetching badges:', error)
+        return
+      }
+
+      setBadges(data || [])
+    } catch (error) {
+      console.error('Error fetching badges:', error)
+    }
+  }
+
+  const fetchCustomerBadges = async () => {
+    if (!user) return
+    
+    try {
+      const { data, error } = await supabase
+        .from('customer_badges')
+        .select('*, badges!inner(*)')
+        .eq('customer_id', user.id)
+        .order('unlocked_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching customer badges:', error)
+        return
+      }
+
+      setCustomerBadges(data || [])
+    } catch (error) {
+      console.error('Error fetching customer badges:', error)
     }
   }
 
@@ -334,15 +383,16 @@ export function CustomerDashboard() {
         </div>
 
         {/* Rewards and Claims */}
-        <Tabs defaultValue="rewards" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="rewards" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
-            <TabsTrigger value="active-claims">Aktive Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
-            <TabsTrigger value="points-history">Meine Punkte</TabsTrigger>
-            <TabsTrigger value="history">Claim-Historie</TabsTrigger>
+            <TabsTrigger value="active">Aktiv</TabsTrigger>
+            <TabsTrigger value="badges">Meine Abzeichen</TabsTrigger>
+            <TabsTrigger value="points">Punkte</TabsTrigger>
+            <TabsTrigger value="history">Verlauf</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="rewards">
+          <TabsContent value="rewards" className="space-y-4">
             <div className="space-y-6">
               {/* Current Points Display */}
               <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
@@ -389,64 +439,81 @@ export function CustomerDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="active-claims">
+          <TabsContent value="active" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="w-5 h-5" />
-                  Meine aktiven Belohnungen
+                  Aktive Belohnungen
                 </CardTitle>
                 <CardDescription>
-                  Zeigen Sie diese QR-Codes im Laden vor, um Ihre Belohnungen zu erhalten
+                  Ihre eingelösten Belohnungen, die noch nicht abgeholt wurden
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {claims.filter(claim => claim.status === 'EINGELÖST').length === 0 ? (
-                    <div className="text-center py-8">
-                      <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Keine aktiven Belohnungen vorhanden</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Lösen Sie eine Belohnung ein, um hier einen QR-Code zu erhalten
-                      </p>
-                    </div>
-                  ) : (
-                    claims.filter(claim => claim.status === 'EINGELÖST').map((claim) => (
-                      <div key={claim.id} className="border rounded-lg p-4 space-y-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">{claim.reward_name}</h3>
-                            <p className="text-sm text-muted-foreground">{claim.reward_description}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Eingelöst am {new Date(claim.created_at).toLocaleDateString('de-DE')}
-                            </p>
+                {claims.filter(claim => !claim.picked_up).length === 0 ? (
+                  <div className="text-center py-8">
+                    <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Keine aktiven Belohnungen</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {claims.filter(claim => !claim.picked_up).map((claim) => (
+                      <Card key={claim.id} className="border-l-4 border-l-primary">
+                        <CardContent className="pt-4">
+                          <div className="flex flex-col md:flex-row md:items-center gap-4">
+                            <div className="flex-1">
+                              <h3 className="font-semibold">{claim.reward_name}</h3>
+                              <p className="text-sm text-muted-foreground">{claim.reward_description}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary">
+                                  {claim.points_redeemed} Punkte eingelöst
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="bg-white p-2 rounded-lg border-2 border-primary/20">
+                                <QRCodeSVG 
+                                  value={claim.qr_code} 
+                                  size={80}
+                                  fgColor="#2563eb"
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground text-center">
+                                QR-Code im Laden zeigen
+                              </p>
+                            </div>
                           </div>
-                          <Badge variant="secondary">
-                            {claim.points_redeemed} Punkte
-                          </Badge>
-                        </div>
-                        <div className="flex justify-center">
-                          <div className="p-4 bg-white rounded-lg border-2 border-dashed">
-                            <QRCodeSVG 
-                              value={claim.qr_code} 
-                              size={200}
-                              level="M"
-                              includeMargin={true}
-                            />
-                          </div>
-                        </div>
-                        <p className="text-center text-sm text-muted-foreground">
-                          Zeigen Sie diesen Code an der Kasse vor
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="points-history">
+          <TabsContent value="badges" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Meine Abzeichen
+                </CardTitle>
+                <CardDescription>
+                  Ihre freigeschalteten Erfolge und Abzeichen
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BadgeDisplay 
+                  badges={badges} 
+                  unlockedBadges={customerBadges.map(cb => cb.badge_id)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="points" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -524,7 +591,7 @@ export function CustomerDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="history">
+          <TabsContent value="history" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -537,12 +604,12 @@ export function CustomerDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {claims.filter(claim => claim.status === 'ABGEHOLT').length === 0 ? (
+                  {claims.filter(claim => claim.picked_up).length === 0 ? (
                     <p className="text-muted-foreground text-center py-4">
                       Noch keine Belohnungen abgeholt
                     </p>
                   ) : (
-                    claims.filter(claim => claim.status === 'ABGEHOLT').map((claim) => (
+                    claims.filter(claim => claim.picked_up).map((claim) => (
                       <div key={claim.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-center">
                           <div>
@@ -570,24 +637,24 @@ export function CustomerDashboard() {
         </Tabs>
 
         {/* Active Content Block */}
-        {contentBlock && (
+        {activeContentBlock && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileImage className="w-5 h-5" />
-                {contentBlock.title}
+                {activeContentBlock.title}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {contentBlock.image_url && (
+                {activeContentBlock.image_url && (
                   <div className="w-full">
                     <img
-                      src={contentBlock.image_url}
-                      alt={contentBlock.title}
+                      src={activeContentBlock.image_url}
+                      alt={activeContentBlock.title}
                       className="w-full max-h-64 object-cover rounded-lg"
                       onError={(e) => {
-                        console.error('Error loading image:', contentBlock.image_url);
+                        console.error('Error loading image:', activeContentBlock.image_url);
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
@@ -595,7 +662,7 @@ export function CustomerDashboard() {
                 )}
                 <div className="prose prose-sm max-w-none">
                   <p className="text-muted-foreground whitespace-pre-wrap">
-                    {contentBlock.body}
+                    {activeContentBlock.body}
                   </p>
                 </div>
               </div>
