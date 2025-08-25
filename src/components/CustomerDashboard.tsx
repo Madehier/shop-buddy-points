@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -33,10 +34,20 @@ interface Reward {
   active: boolean
 }
 
+interface Announcement {
+  id: string
+  title: string
+  content: string
+  active: boolean
+  created_at: string
+}
+
 export function CustomerDashboard() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
+  const [announcement, setAnnouncement] = useState<Announcement | null>(null)
+  const [showAnnouncement, setShowAnnouncement] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user, signOut } = useAuth()
   const { toast } = useToast()
@@ -46,6 +57,7 @@ export function CustomerDashboard() {
       fetchCustomerData()
       fetchTransactions()
       fetchRewards()
+      fetchLatestAnnouncement()
     }
   }, [user])
 
@@ -112,6 +124,23 @@ export function CustomerDashboard() {
       console.error('Error fetching rewards:', error)
     } else {
       setRewards(data || [])
+    }
+  }
+
+  const fetchLatestAnnouncement = async () => {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error('Error fetching announcement:', error)
+    } else if (data) {
+      setAnnouncement(data)
+      setShowAnnouncement(true)
     }
   }
 
@@ -332,6 +361,32 @@ export function CustomerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Announcement Dialog */}
+      <Dialog open={showAnnouncement} onOpenChange={setShowAnnouncement}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              {announcement?.title}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAnnouncement(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-base">
+            {announcement?.content}
+          </DialogDescription>
+          <div className="flex justify-end pt-4">
+            <Button onClick={() => setShowAnnouncement(false)}>
+              Verstanden
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
