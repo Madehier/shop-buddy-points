@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode, X, FileImage } from 'lucide-react'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode, X, FileImage, Store } from 'lucide-react'
+import logo from '@/assets/logo-dorfladen-eggenthal.png'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -219,9 +220,16 @@ export function CustomerDashboard() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-loyalty-gold">Shop Loyalty</h1>
-            <p className="text-muted-foreground">Willkommen, {customer.name}!</p>
+          <div className="flex items-center gap-4">
+            <img 
+              src={logo} 
+              alt="Dorfladen Eggenthal" 
+              className="h-16 w-auto"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-dorfladen-green">Dorfladen Eggenthal</h1>
+              <p className="text-muted-foreground">Willkommen, {customer.name}!</p>
+            </div>
           </div>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="w-4 h-4 mr-2" />
@@ -231,16 +239,16 @@ export function CustomerDashboard() {
 
         {/* Points and QR Code Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-r from-loyalty-gold/10 to-loyalty-silver/10">
+          <Card className="bg-gradient-to-r from-dorfladen-green/10 to-dorfladen-light-green/10 border-dorfladen-green/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-loyalty-gold" />
-                Ihre Punkte
+                <Star className="w-5 h-5 text-dorfladen-green" />
+                Ihre Treuepunkte
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-4xl font-bold text-loyalty-gold mb-2">
+                <div className="text-4xl font-bold text-dorfladen-green mb-2">
                   {customer.points}
                 </div>
                 <p className="text-muted-foreground">

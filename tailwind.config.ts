@@ -62,13 +62,17 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				'loyalty-gold': {
-					DEFAULT: 'hsl(var(--loyalty-gold))',
-					foreground: 'hsl(var(--loyalty-gold-foreground))'
+				'dorfladen-green': {
+					DEFAULT: 'hsl(var(--dorfladen-green))',
+					foreground: 'hsl(var(--dorfladen-green-foreground))',
 				},
-				'loyalty-silver': {
-					DEFAULT: 'hsl(var(--loyalty-silver))',
-					foreground: 'hsl(var(--loyalty-silver-foreground))'
+				'dorfladen-light-green': {
+					DEFAULT: 'hsl(var(--dorfladen-light-green))',
+					foreground: 'hsl(var(--dorfladen-light-green-foreground))',
+				},
+				'dorfladen-warm': {
+					DEFAULT: 'hsl(var(--dorfladen-warm))',
+					foreground: 'hsl(var(--dorfladen-warm-foreground))',
 				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
