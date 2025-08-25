@@ -38,6 +38,36 @@ export type Database = {
         }
         Relationships: []
       }
+      content_blocks: {
+        Row: {
+          active: boolean
+          body: string
+          created_at: string
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string | null
