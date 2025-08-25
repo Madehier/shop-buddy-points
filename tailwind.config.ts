@@ -74,10 +74,24 @@ export default {
 					DEFAULT: 'hsl(var(--dorfladen-warm))',
 					foreground: 'hsl(var(--dorfladen-warm-foreground))',
 				},
+				'dorfladen-orange': {
+					DEFAULT: 'hsl(var(--dorfladen-orange))',
+					foreground: 'hsl(var(--dorfladen-orange-foreground))',
+				},
+				'dorfladen-blue': {
+					DEFAULT: 'hsl(var(--dorfladen-blue))',
+					foreground: 'hsl(var(--dorfladen-blue-foreground))',
+				},
 				success: {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				}
+			},
+			fontFamily: {
+				'heading': ['Crimson Text', 'serif'],
+				'body': ['Inter', 'sans-serif'],
+				'sans': ['Inter', 'sans-serif'],
+				'serif': ['Crimson Text', 'serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

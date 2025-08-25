@@ -4,7 +4,6 @@ import { AuthForm } from '@/components/AuthForm'
 import { CustomerDashboard } from '@/components/CustomerDashboard'
 import { AdminDashboard } from '@/components/AdminDashboard'
 import { SplashScreen } from '@/components/SplashScreen'
-import { DevTools } from '@/components/DevTools'
 
 const Index = () => {
   const { user, loading } = useAuth()
@@ -82,12 +81,7 @@ const Index = () => {
   // For now, we'll use a simple email check - replace with your admin email
   const isAdmin = user.email === 'admin@shop.com'
 
-  return (
-    <>
-      {isAdmin ? <AdminDashboard /> : <CustomerDashboard />}
-      <DevTools />
-    </>
-  )
+  return isAdmin ? <AdminDashboard /> : <CustomerDashboard />
 }
 
 export default Index

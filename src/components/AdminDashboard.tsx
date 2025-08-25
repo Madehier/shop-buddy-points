@@ -639,7 +639,7 @@ export function AdminDashboard() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-loyalty-gold">Admin Dashboard</h1>
+            <h1 className="text-3xl font-heading font-bold text-primary">Admin Dashboard</h1>
             <p className="text-muted-foreground">Verwalten Sie Ihr Loyalty-Programm</p>
           </div>
           <Button variant="outline" onClick={signOut}>
@@ -665,7 +665,7 @@ export function AdminDashboard() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-loyalty-gold">{stats.totalPoints}</div>
+              <div className="text-2xl font-bold text-primary">{stats.totalPoints}</div>
             </CardContent>
           </Card>
           <Card>
@@ -1112,7 +1112,7 @@ export function AdminDashboard() {
                           required
                         />
                       </div>
-                      <Button type="submit" className="w-full">
+                      <Button type="submit" className="w-full" variant="dorfladen">
                         Belohnung erstellen
                       </Button>
                     </form>

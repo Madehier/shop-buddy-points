@@ -286,7 +286,7 @@ export function CustomerDashboard() {
               className="h-16 w-auto"
             />
             <div>
-              <h1 className="text-3xl font-bold text-dorfladen-green">Dorfladen Eggenthal</h1>
+              <h1 className="text-3xl font-heading font-bold text-primary">Dorfladen Eggenthal</h1>
               <p className="text-muted-foreground">Willkommen, {customer.name}!</p>
             </div>
           </div>
@@ -298,10 +298,10 @@ export function CustomerDashboard() {
 
         {/* Points and QR Code Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-r from-dorfladen-green/10 to-dorfladen-light-green/10 border-dorfladen-green/20">
+          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-dorfladen-green" />
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <Star className="w-5 h-5" />
                 Ihre Treuepunkte
               </CardTitle>
             </CardHeader>
@@ -330,7 +330,7 @@ export function CustomerDashboard() {
                 
                 {/* Points Display */}
                 <div className="text-center space-y-2">
-                  <div className="text-4xl font-bold text-dorfladen-green">
+                  <div className="text-4xl font-bold text-primary">
                     {customer.points}
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -418,6 +418,7 @@ export function CustomerDashboard() {
                             size="sm"
                             disabled={customer.points < reward.points_required}
                             className="w-full"
+                            variant={customer.points >= reward.points_required ? "dorfladen" : "secondary"}
                           >
                             <Gift className="w-4 h-4 mr-2" />
                             {customer.points >= reward.points_required ? "Abholen" : "Nicht genügend Punkte"}
@@ -516,14 +517,14 @@ export function CustomerDashboard() {
               </CardHeader>
               <CardContent>
                 {/* Current Points Balance */}
-                <div className="mb-6 p-4 border rounded-lg bg-gradient-to-r from-dorfladen-green/10 to-dorfladen-light-green/10">
+                <div className="mb-6 p-4 border rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-semibold text-lg">Aktueller Punktestand</h3>
+                      <h3 className="font-heading font-semibold text-lg">Aktueller Punktestand</h3>
                       <p className="text-sm text-muted-foreground">Verfügbare Punkte für Belohnungen</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-dorfladen-green">{customer.points}</div>
+                      <div className="text-3xl font-bold text-primary">{customer.points}</div>
                       <div className="text-sm text-muted-foreground">von {customer.total_points} gesammelten Punkten</div>
                     </div>
                   </div>
