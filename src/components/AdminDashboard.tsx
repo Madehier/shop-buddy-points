@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -43,10 +43,24 @@ interface ContentBlock {
   updated_at: string
 }
 
+interface Claim {
+  id: string
+  customer_id: string
+  reward_id: string
+  qr_code: string
+  status: 'EINGELÖST' | 'ABGEHOLT'
+  points_redeemed: number
+  reward_name: string
+  reward_description: string
+  created_at: string
+  updated_at: string
+}
+
 export function AdminDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
+  const [claims, setClaims] = useState<Claim[]>([])
   const [stats, setStats] = useState({
     totalCustomers: 0,
     totalPoints: 0,
@@ -85,6 +99,7 @@ export function AdminDashboard() {
       fetchCustomers(),
       fetchRewards(),
       fetchContentBlocks(),
+      fetchClaims(),
       fetchStats()
     ])
     setLoading(false)
@@ -126,6 +141,19 @@ export function AdminDashboard() {
       console.error('Error fetching content blocks:', error)
     } else {
       setContentBlocks(data || [])
+    }
+  }
+
+  const fetchClaims = async () => {
+    const { data, error } = await supabase
+      .from('claims')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching claims:', error)
+    } else {
+      setClaims((data as Claim[]) || [])
     }
   }
 
@@ -426,11 +454,18 @@ export function AdminDashboard() {
     fetchContentBlocks()
   }
 
-  const handleQRScan = async (customerId: string) => {
+  const handleQRScan = async (code: string) => {
     try {
-      const customer = customers.find(c => c.id === customerId)
+      // Check if it's a claim QR code
+      if (code.startsWith('claim_')) {
+        await handleClaimQRScan(code)
+        return
+      }
+      
+      // Otherwise handle as customer QR code
+      const customer = customers.find(c => c.id === code)
       if (customer) {
-        setScannedCustomerId(customerId)
+        setScannedCustomerId(code)
         setScannedCustomer(customer)
         toast({
           title: "Kunde gescannt",
@@ -449,6 +484,47 @@ export function AdminDashboard() {
         variant: "destructive",
         title: "Fehler",
         description: "Fehler beim Verarbeiten des QR-Codes."
+      })
+    }
+  }
+
+  const handleClaimQRScan = async (qrCode: string) => {
+    const claim = claims.find(c => c.qr_code === qrCode && c.status === 'EINGELÖST')
+    
+    if (!claim) {
+      toast({
+        variant: "destructive",
+        title: "Ungültiger QR-Code",
+        description: "Dieser QR-Code ist ungültig oder wurde bereits eingelöst."
+      })
+      return
+    }
+
+    const customer = customers.find(c => c.id === claim.customer_id)
+    
+    try {
+      // Mark claim as completed
+      const { error } = await supabase
+        .from('claims')
+        .update({ status: 'ABGEHOLT' })
+        .eq('id', claim.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Claim abgeholt!",
+        description: `${claim.reward_name} wurde an ${customer?.name || 'Kunde'} ausgegeben.`
+      })
+
+      // Refresh claims data
+      await fetchClaims()
+      
+    } catch (error) {
+      console.error('Error processing claim:', error)
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Fehler beim Abholen des Claims."
       })
     }
   }
@@ -565,9 +641,10 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
+            <TabsTrigger value="claims">Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
@@ -622,6 +699,124 @@ export function AdminDashboard() {
                   </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="claims">
+            <Tabs defaultValue="open-claims" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="open-claims">Offene Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
+                <TabsTrigger value="completed-claims">Abgeholt ({claims.filter(c => c.status === 'ABGEHOLT').length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="open-claims">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Offene Claims
+                    </CardTitle>
+                    <CardDescription>
+                      Eingelöste Belohnungen, die noch nicht abgeholt wurden
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {claims.filter(claim => claim.status === 'EINGELÖST').length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">Keine offenen Claims vorhanden</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {claims.filter(claim => claim.status === 'EINGELÖST').map((claim) => {
+                          const customer = customers.find(c => c.id === claim.customer_id);
+                          return (
+                            <div key={claim.id} className="border rounded-lg p-4 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold">{claim.reward_name}</h3>
+                                  <p className="text-sm text-muted-foreground">{claim.reward_description}</p>
+                                  <p className="text-sm">
+                                    Kunde: <span className="font-medium">{customer?.name || 'Unbekannt'}</span>
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Eingelöst: {new Date(claim.created_at).toLocaleDateString('de-DE', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <Badge variant="secondary">{claim.points_redeemed} Punkte</Badge>
+                                  <p className="text-xs text-muted-foreground mt-1">QR: {claim.qr_code.slice(-8)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="completed-claims">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      Abgeholte Claims
+                    </CardTitle>
+                    <CardDescription>
+                      Bereits abgeholte Belohnungen
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {claims.filter(claim => claim.status === 'ABGEHOLT').length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">Keine abgeholten Claims vorhanden</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {claims.filter(claim => claim.status === 'ABGEHOLT').map((claim) => {
+                          const customer = customers.find(c => c.id === claim.customer_id);
+                          return (
+                            <div key={claim.id} className="border rounded-lg p-4 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="font-semibold">{claim.reward_name}</h3>
+                                  <p className="text-sm text-muted-foreground">{claim.reward_description}</p>
+                                  <p className="text-sm">
+                                    Kunde: <span className="font-medium">{customer?.name || 'Unbekannt'}</span>
+                                  </p>
+                                  <div className="text-xs text-muted-foreground space-y-1">
+                                    <p>Eingelöst: {new Date(claim.created_at).toLocaleDateString('de-DE', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}</p>
+                                    <p>Abgeholt: {new Date(claim.updated_at).toLocaleDateString('de-DE', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <Badge variant="outline">Abgeholt</Badge>
+                                  <p className="text-xs text-muted-foreground mt-1">{claim.points_redeemed} Punkte</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="rewards">

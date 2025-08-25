@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      claims: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          points_redeemed: number
+          qr_code: string
+          reward_description: string
+          reward_id: string
+          reward_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          points_redeemed: number
+          qr_code: string
+          reward_description: string
+          reward_id: string
+          reward_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          points_redeemed?: number
+          qr_code?: string
+          reward_description?: string
+          reward_id?: string
+          reward_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_blocks: {
         Row: {
           active: boolean
@@ -128,29 +167,35 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          claim_id: string | null
           created_at: string | null
           customer_id: string | null
           description: string
           id: string
           points_earned: number
+          reward_id: string | null
           type: string | null
         }
         Insert: {
           amount: number
+          claim_id?: string | null
           created_at?: string | null
           customer_id?: string | null
           description: string
           id?: string
           points_earned: number
+          reward_id?: string | null
           type?: string | null
         }
         Update: {
           amount?: number
+          claim_id?: string | null
           created_at?: string | null
           customer_id?: string | null
           description?: string
           id?: string
           points_earned?: number
+          reward_id?: string | null
           type?: string | null
         }
         Relationships: [
