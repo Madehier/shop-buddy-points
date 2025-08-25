@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Star, LogOut, Trophy, ShoppingBag } from 'lucide-react'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { QRCodeSVG } from 'qrcode.react'
 
 interface Customer {
   id: string
@@ -197,25 +198,53 @@ export function CustomerDashboard() {
           </Button>
         </div>
 
-        {/* Points Card */}
-        <Card className="bg-gradient-to-r from-loyalty-gold/10 to-loyalty-silver/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-loyalty-gold" />
-              Ihre Punkte
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-loyalty-gold mb-2">
-                {customer.points}
+        {/* Points and QR Code Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-gradient-to-r from-loyalty-gold/10 to-loyalty-silver/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-loyalty-gold" />
+                Ihre Punkte
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-loyalty-gold mb-2">
+                  {customer.points}
+                </div>
+                <p className="text-muted-foreground">
+                  1 Euro = 1 Punkt beim Einkauf
+                </p>
               </div>
-              <p className="text-muted-foreground">
-                1 Euro = 1 Punkt beim Einkauf
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                Ihr QR-Code
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-white rounded-lg">
+                    <QRCodeSVG 
+                      value={customer.id} 
+                      size={150}
+                      level="M"
+                      includeMargin={true}
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Zeigen Sie diesen Code an der Kasse vor
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Rewards */}
         <Card>

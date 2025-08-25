@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Users, Plus, Settings, TrendingUp, Euro, Star } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { QRScanner } from '@/components/QRScanner'
 
 interface Customer {
   id: string
@@ -46,6 +47,8 @@ export function AdminDashboard() {
     points: 0,
     description: ''
   })
+  const [scannedCustomerId, setScannedCustomerId] = useState<string | null>(null)
+  const [scannedCustomer, setScannedCustomer] = useState<Customer | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -208,6 +211,85 @@ export function AdminDashboard() {
     fetchRewards()
   }
 
+  const handleQRScan = async (customerId: string) => {
+    try {
+      const customer = customers.find(c => c.id === customerId)
+      if (customer) {
+        setScannedCustomerId(customerId)
+        setScannedCustomer(customer)
+        toast({
+          title: "Kunde gescannt",
+          description: `${customer.name} (${customer.email}) wurde erfolgreich gescannt.`
+        })
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Kunde nicht gefunden",
+          description: "Der gescannte QR-Code gehört zu keinem bekannten Kunden."
+        })
+      }
+    } catch (error) {
+      console.error('Error handling QR scan:', error)
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Fehler beim Verarbeiten des QR-Codes."
+      })
+    }
+  }
+
+  const addPointsToScannedCustomer = async (points: number) => {
+    if (!scannedCustomerId || !scannedCustomer) return
+
+    setLoading(true)
+    try {
+      // Add transaction
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert([
+          {
+            customer_id: scannedCustomerId,
+            type: 'earn',
+            points_earned: points,
+            amount: 0,
+            description: `Punkte per QR-Scan erhalten`
+          }
+        ])
+
+      if (transactionError) throw transactionError
+
+      // Update customer points
+      const { error: customerError } = await supabase
+        .from('customers')
+        .update({ 
+          points: scannedCustomer.points + points,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', scannedCustomerId)
+
+      if (customerError) throw customerError
+
+      toast({
+        title: "Punkte hinzugefügt",
+        description: `${points} Punkte wurden ${scannedCustomer.name} gutgeschrieben.`
+      })
+
+      // Refresh data and reset scanner
+      await fetchData()
+      setScannedCustomerId(null)
+      setScannedCustomer(null)
+    } catch (error) {
+      console.error('Error adding points:', error)
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Fehler beim Hinzufügen der Punkte."
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -263,10 +345,11 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
+            <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
           </TabsList>
 
           <TabsContent value="customers">
@@ -458,6 +541,106 @@ export function AdminDashboard() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="scanner" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <QRScanner 
+                  onScan={handleQRScan}
+                  onError={(error) => toast({
+                    variant: "destructive",
+                    title: "Scanner Fehler",
+                    description: error
+                  })}
+                />
+              </div>
+              
+              <div>
+                {scannedCustomer ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <QrCode className="h-5 w-5" />
+                        Gescannter Kunde
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="p-4 bg-muted rounded-lg">
+                        <h3 className="font-semibold">{scannedCustomer.name}</h3>
+                        <p className="text-sm text-muted-foreground">{scannedCustomer.email}</p>
+                        <p className="text-lg font-medium">Aktuelle Punkte: {scannedCustomer.points}</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Schnell-Aktionen</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            onClick={() => addPointsToScannedCustomer(10)}
+                            disabled={loading}
+                            className="w-full"
+                          >
+                            +10 Punkte
+                          </Button>
+                          <Button 
+                            onClick={() => addPointsToScannedCustomer(20)}
+                            disabled={loading}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            +20 Punkte
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            onClick={() => addPointsToScannedCustomer(50)}
+                            disabled={loading}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            +50 Punkte
+                          </Button>
+                          <Button 
+                            onClick={() => addPointsToScannedCustomer(100)}
+                            disabled={loading}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            +100 Punkte
+                          </Button>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={() => {
+                          setScannedCustomerId(null)
+                          setScannedCustomer(null)
+                        }}
+                        variant="ghost"
+                        className="w-full"
+                      >
+                        Zurücksetzen
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Anleitung</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                        <li>Starten Sie den QR-Scanner</li>
+                        <li>Lassen Sie den Kunden seinen QR-Code zeigen</li>
+                        <li>Scannen Sie den Code</li>
+                        <li>Wählen Sie die Punkteanzahl aus</li>
+                        <li>Die Punkte werden automatisch gutgeschrieben</li>
+                      </ol>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
