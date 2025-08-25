@@ -14,12 +14,14 @@ import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { QRScanner } from '@/components/QRScanner'
+import { getRankByPoints } from '@/lib/ranks'
 
 interface Customer {
   id: string
   name: string
   email: string
   points: number
+  total_points: number
   created_at: string
 }
 
@@ -161,10 +163,14 @@ export function AdminDashboard() {
     }
 
     const newPointsTotal = customer.points + addPointsData.points
+    const newTotalPoints = customer.total_points + addPointsData.points
 
     const { error: updateError } = await supabase
       .from('customers')
-      .update({ points: newPointsTotal })
+      .update({ 
+        points: newPointsTotal,
+        total_points: newTotalPoints
+      })
       .eq('id', addPointsData.customerId)
 
     if (updateError) {
@@ -472,6 +478,7 @@ export function AdminDashboard() {
         .from('customers')
         .update({ 
           points: scannedCustomer.points + points,
+          total_points: scannedCustomer.total_points + points,
           updated_at: new Date().toISOString()
         })
         .eq('id', scannedCustomerId)
@@ -575,30 +582,44 @@ export function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>E-Mail</TableHead>
-                      <TableHead>Punkte</TableHead>
-                      <TableHead>Registriert</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customers.map((customer) => (
-                      <TableRow key={customer.id}>
-                        <TableCell className="font-medium">{customer.name}</TableCell>
-                        <TableCell>{customer.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">{customer.points} Punkte</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(customer.created_at).toLocaleDateString('de-DE')}
-                        </TableCell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>E-Mail</TableHead>
+                        <TableHead>Aktive Punkte</TableHead>
+                        <TableHead>Gesammelte Punkte</TableHead>
+                        <TableHead>Rang</TableHead>
+                        <TableHead>Registriert</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {customers.map((customer) => {
+                        const rank = getRankByPoints(customer.total_points);
+                        return (
+                          <TableRow key={customer.id}>
+                            <TableCell className="font-medium">{customer.name}</TableCell>
+                            <TableCell>{customer.email}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{customer.points} aktive Punkte</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{customer.total_points} gesamt</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span>{rank.emoji}</span>
+                                <span className="text-sm">{rank.name}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {new Date(customer.created_at).toLocaleDateString('de-DE')}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
               </CardContent>
             </Card>
           </TabsContent>
@@ -783,7 +804,22 @@ export function AdminDashboard() {
                       <div className="p-4 bg-muted rounded-lg">
                         <h3 className="font-semibold">{scannedCustomer.name}</h3>
                         <p className="text-sm text-muted-foreground">{scannedCustomer.email}</p>
-                        <p className="text-lg font-medium">Aktuelle Punkte: {scannedCustomer.points}</p>
+                        <p className="text-lg font-medium">
+                          Aktive Punkte: {scannedCustomer.points} | Gesamt: {scannedCustomer.total_points}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const rank = getRankByPoints(scannedCustomer.total_points);
+                            return (
+                              <>
+                                <span>{rank.emoji}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {rank.name}
+                                </Badge>
+                              </>
+                            );
+                          })()}
+                        </div>
                       </div>
                       
                       <div className="space-y-2">

@@ -75,6 +75,7 @@ export type Database = {
           id: string
           name: string
           points: number | null
+          total_points: number
           updated_at: string | null
         }
         Insert: {
@@ -83,6 +84,7 @@ export type Database = {
           id: string
           name: string
           points?: number | null
+          total_points?: number
           updated_at?: string | null
         }
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           id?: string
           name?: string
           points?: number | null
+          total_points?: number
           updated_at?: string | null
         }
         Relationships: []

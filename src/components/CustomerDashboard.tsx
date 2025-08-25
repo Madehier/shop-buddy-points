@@ -9,12 +9,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { QRCodeSVG } from 'qrcode.react'
+import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
 
 interface Customer {
   id: string
   name: string
   email: string
   points: number
+  total_points: number
 }
 
 interface Transaction {
@@ -83,7 +85,8 @@ export function CustomerDashboard() {
           id: user.id,
           email: user.email || '',
           name: user.user_metadata?.name || 'Kunde',
-          points: 0
+          points: 0,
+          total_points: 0
         })
         .select()
         .single()
@@ -244,13 +247,43 @@ export function CustomerDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-dorfladen-green mb-2">
-                  {customer.points}
+              <div className="space-y-4">
+                {/* Current Rank */}
+                <div className="text-center">
+                  {(() => {
+                    const rank = getRankByPoints(customer.total_points);
+                    const pointsToNext = getPointsToNextRank(customer.total_points);
+                    return (
+                      <div className="space-y-2">
+                        <div className="text-2xl">{rank.emoji}</div>
+                        <Badge variant="outline" className="text-sm">
+                          {rank.name}
+                        </Badge>
+                        {pointsToNext && (
+                          <p className="text-xs text-muted-foreground">
+                            Noch {pointsToNext} Punkte bis zum nächsten Rang
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
-                <p className="text-muted-foreground">
-                  1 Euro = 1 Punkt beim Einkauf
-                </p>
+                
+                {/* Points Display */}
+                <div className="text-center space-y-2">
+                  <div className="text-4xl font-bold text-dorfladen-green">
+                    {customer.points}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Aktive Punkte (für Belohnungen)
+                  </p>
+                  <div className="text-lg font-medium text-muted-foreground">
+                    {customer.total_points} gesammelte Punkte insgesamt
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    1 Euro = 1 Punkt beim Einkauf
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
