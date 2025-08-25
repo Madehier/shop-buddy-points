@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Star, LogOut, Trophy, ShoppingBag } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 
 interface Customer {
@@ -96,7 +96,7 @@ export function CustomerDashboard() {
     if (error) {
       console.error('Error fetching transactions:', error)
     } else {
-      setTransactions(data || [])
+      setTransactions((data as Transaction[]) || [])
     }
   }
 
