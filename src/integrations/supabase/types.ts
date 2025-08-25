@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          active: boolean
+          condition_type: string
+          condition_value: number
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          condition_type: string
+          condition_value: number
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          condition_type?: string
+          condition_value?: number
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       claims: {
         Row: {
           created_at: string
@@ -106,6 +139,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      customer_badges: {
+        Row: {
+          badge_id: string
+          customer_id: string
+          id: string
+          unlocked_at: string
+        }
+        Insert: {
+          badge_id: string
+          customer_id: string
+          id?: string
+          unlocked_at?: string
+        }
+        Update: {
+          badge_id?: string
+          customer_id?: string
+          id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {
@@ -213,7 +275,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_and_award_badges: {
+        Args: { customer_uuid: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
