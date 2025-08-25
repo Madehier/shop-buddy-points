@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
 import { RankDisplay } from '@/components/RankDisplay'
+import { RewardCard } from '@/components/RewardCard'
 
 interface Customer {
   id: string
@@ -342,67 +343,50 @@ export function CustomerDashboard() {
           </TabsList>
 
           <TabsContent value="rewards">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Verfügbare Belohnungen
-                </CardTitle>
-                <CardDescription>
-                  Lösen Sie Ihre Punkte gegen tolle Belohnungen ein
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {rewards.map((reward) => (
-                    <div
-                      key={reward.id}
-                      className="border rounded-lg p-4 space-y-3"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold">{reward.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {reward.description}
-                          </p>
-                        </div>
-                        <Badge variant={customer.points >= reward.points_required ? "default" : "secondary"}>
-                          {reward.points_required} Punkte
-                        </Badge>
-                      </div>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            disabled={customer.points < reward.points_required}
-                            className="w-full"
-                            variant={customer.points >= reward.points_required ? "dorfladen" : "secondary"}
-                          >
-                            <Gift className="w-4 h-4 mr-2" />
-                            {customer.points >= reward.points_required ? "Abholen" : "Nicht genügend Punkte"}
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Belohnung abholen?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Möchten Sie {reward.name} für {reward.points_required} Punkte abholen? 
-                              Die Punkte werden sofort abgezogen und Sie erhalten einen QR-Code zum Einlösen im Laden.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => redeemReward(reward)}>
-                              Ja, abholen
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+            <div className="space-y-6">
+              {/* Current Points Display */}
+              <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-heading font-semibold text-lg text-primary">Ihre verfügbaren Punkte</h3>
+                      <p className="text-sm text-muted-foreground">Lösen Sie Ihre Punkte gegen tolle Belohnungen ein</p>
                     </div>
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-primary">{customer.points.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Punkte verfügbar</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Rewards Shop */}
+              <div>
+                <h3 className="font-heading font-semibold text-xl mb-4">🛍️ Belohnungen-Shop</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {rewards.map((reward) => (
+                    <RewardCard
+                      key={reward.id}
+                      reward={reward}
+                      currentPoints={customer.points}
+                      onRedeem={redeemReward}
+                    />
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+                
+                {rewards.length === 0 && (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Gift className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Derzeit sind keine Belohnungen verfügbar</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Schauen Sie bald wieder vorbei für neue Angebote!
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="active-claims">
