@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode, X, FileImage, Store } from 'lucide-react'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode, FileImage, Store } from 'lucide-react'
 import logo from '@/assets/logo-dorfladen-eggenthal.png'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
@@ -50,7 +49,6 @@ export function CustomerDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
   const [contentBlock, setContentBlock] = useState<ContentBlock | null>(null)
-  const [showContentBlock, setShowContentBlock] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user, signOut } = useAuth()
   const { toast } = useToast()
@@ -143,7 +141,6 @@ export function CustomerDashboard() {
       console.error('Error fetching content block:', error)
     } else if (data) {
       setContentBlock(data)
-      setShowContentBlock(true)
     }
   }
 
@@ -405,45 +402,6 @@ export function CustomerDashboard() {
           </Card>
         )}
       </div>
-
-      {/* Content Block Dialog */}
-      <Dialog open={showContentBlock} onOpenChange={setShowContentBlock}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              {contentBlock?.title}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowContentBlock(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {contentBlock?.image_url && (
-              <img
-                src={contentBlock.image_url}
-                alt={contentBlock.title}
-                className="w-full max-h-64 object-cover rounded-lg"
-                onError={(e) => {
-                  console.error('Error loading image:', contentBlock.image_url);
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            )}
-            <DialogDescription className="text-base whitespace-pre-wrap">
-              {contentBlock?.body}
-            </DialogDescription>
-          </div>
-          <div className="flex justify-end pt-4">
-            <Button onClick={() => setShowContentBlock(false)}>
-              Verstanden
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
