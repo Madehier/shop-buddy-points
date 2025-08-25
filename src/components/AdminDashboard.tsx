@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Megaphone, Upload, Edit, Trash2, FileImage } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -31,14 +31,6 @@ interface Reward {
   active: boolean
 }
 
-interface Announcement {
-  id: string
-  title: string
-  content: string
-  active: boolean
-  created_at: string
-}
-
 interface ContentBlock {
   id: string
   title: string
@@ -52,7 +44,6 @@ interface ContentBlock {
 export function AdminDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [stats, setStats] = useState({
     totalCustomers: 0,
@@ -64,10 +55,6 @@ export function AdminDashboard() {
     name: '',
     points_required: 0,
     description: ''
-  })
-  const [newAnnouncement, setNewAnnouncement] = useState({
-    title: '',
-    content: ''
   })
   const [newContentBlock, setNewContentBlock] = useState({
     title: '',
@@ -95,7 +82,6 @@ export function AdminDashboard() {
     await Promise.all([
       fetchCustomers(),
       fetchRewards(),
-      fetchAnnouncements(),
       fetchContentBlocks(),
       fetchStats()
     ])
@@ -125,19 +111,6 @@ export function AdminDashboard() {
       console.error('Error fetching rewards:', error)
     } else {
       setRewards(data || [])
-    }
-  }
-
-  const fetchAnnouncements = async () => {
-    const { data, error } = await supabase
-      .from('announcements')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching announcements:', error)
-    } else {
-      setAnnouncements(data || [])
     }
   }
 
@@ -257,44 +230,6 @@ export function AdminDashboard() {
     fetchRewards()
   }
 
-  const createAnnouncement = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!newAnnouncement.title.trim() || !newAnnouncement.content.trim()) {
-      toast({
-        title: "Fehler",
-        description: "Titel und Inhalt sind erforderlich.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const { error } = await supabase
-      .from('announcements')
-      .insert({
-        title: newAnnouncement.title,
-        content: newAnnouncement.content,
-        active: true
-      })
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Ankündigung konnte nicht erstellt werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Ankündigung erstellt",
-      description: `${newAnnouncement.title} wurde erfolgreich erstellt.`,
-    })
-
-    setNewAnnouncement({ title: '', content: '' })
-    fetchAnnouncements()
-  }
-
   const toggleReward = async (rewardId: string, active: boolean) => {
     const { error } = await supabase
       .from('rewards')
@@ -311,29 +246,6 @@ export function AdminDashboard() {
     }
 
     fetchRewards()
-  }
-
-  const toggleAnnouncement = async (announcementId: string, active: boolean) => {
-    const { error } = await supabase
-      .from('announcements')
-      .update({ active: !active })
-      .eq('id', announcementId)
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Ankündigung konnte nicht aktualisiert werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Status geändert",
-      description: `Ankündigung wurde ${!active ? 'aktiviert' : 'deaktiviert'}.`,
-    })
-
-    fetchAnnouncements()
   }
 
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -646,12 +558,11 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
-            <TabsTrigger value="announcements">Ankündigungen</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
           </TabsList>
 
@@ -943,109 +854,6 @@ export function AdminDashboard() {
                   </Card>
                 )}
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="announcements">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold">Ankündigungen verwalten</h3>
-                  <p className="text-muted-foreground">Erstellen und verwalten Sie Ankündigungen für Ihre Kunden</p>
-                </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Neue Ankündigung
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Neue Ankündigung erstellen</DialogTitle>
-                      <DialogDescription>
-                        Erstellen Sie eine neue Ankündigung für Ihre Kunden
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={createAnnouncement} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="announcement-title">Titel</Label>
-                        <Input
-                          id="announcement-title"
-                          value={newAnnouncement.title}
-                          onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                          placeholder="z.B. Neue Belohnungen verfügbar!"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="announcement-content">Inhalt</Label>
-                        <Textarea
-                          id="announcement-content"
-                          value={newAnnouncement.content}
-                          onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
-                          placeholder="Inhalt der Ankündigung..."
-                          rows={4}
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        <Megaphone className="w-4 h-4 mr-2" />
-                        Ankündigung erstellen
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alle Ankündigungen</CardTitle>
-                  <CardDescription>
-                    Verwalten Sie bestehende Ankündigungen
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {announcements.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">Keine Ankündigungen vorhanden.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {announcements.map((announcement) => (
-                        <div key={announcement.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">{announcement.title}</h3>
-                                <Badge variant={announcement.active ? "default" : "secondary"}>
-                                  {announcement.active ? "Aktiv" : "Inaktiv"}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {announcement.content}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                Erstellt: {new Date(announcement.created_at).toLocaleDateString('de-DE', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                checked={announcement.active}
-                                onCheckedChange={() => toggleAnnouncement(announcement.id, announcement.active)}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
 
