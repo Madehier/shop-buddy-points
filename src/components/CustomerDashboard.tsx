@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode, X } from 'lucide-react'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode, X, FileImage } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -34,20 +34,22 @@ interface Reward {
   active: boolean
 }
 
-interface Announcement {
+interface ContentBlock {
   id: string
   title: string
-  content: string
+  image_url: string | null
+  body: string
   active: boolean
   created_at: string
+  updated_at: string
 }
 
 export function CustomerDashboard() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
-  const [announcement, setAnnouncement] = useState<Announcement | null>(null)
-  const [showAnnouncement, setShowAnnouncement] = useState(false)
+  const [contentBlock, setContentBlock] = useState<ContentBlock | null>(null)
+  const [showContentBlock, setShowContentBlock] = useState(false)
   const [loading, setLoading] = useState(true)
   const { user, signOut } = useAuth()
   const { toast } = useToast()
@@ -57,7 +59,7 @@ export function CustomerDashboard() {
       fetchCustomerData()
       fetchTransactions()
       fetchRewards()
-      fetchLatestAnnouncement()
+      fetchActiveContentBlock()
     }
   }, [user])
 
@@ -127,9 +129,9 @@ export function CustomerDashboard() {
     }
   }
 
-  const fetchLatestAnnouncement = async () => {
+  const fetchActiveContentBlock = async () => {
     const { data, error } = await supabase
-      .from('announcements')
+      .from('content_blocks')
       .select('*')
       .eq('active', true)
       .order('created_at', { ascending: false })
@@ -137,10 +139,10 @@ export function CustomerDashboard() {
       .maybeSingle()
 
     if (error) {
-      console.error('Error fetching announcement:', error)
+      console.error('Error fetching content block:', error)
     } else if (data) {
-      setAnnouncement(data)
-      setShowAnnouncement(true)
+      setContentBlock(data)
+      setShowContentBlock(true)
     }
   }
 
@@ -360,28 +362,75 @@ export function CustomerDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Active Content Block */}
+        {contentBlock && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileImage className="w-5 h-5" />
+                {contentBlock.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {contentBlock.image_url && (
+                  <div className="w-full">
+                    <img
+                      src={contentBlock.image_url}
+                      alt={contentBlock.title}
+                      className="w-full max-h-64 object-cover rounded-lg"
+                      onError={(e) => {
+                        console.error('Error loading image:', contentBlock.image_url);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-muted-foreground whitespace-pre-wrap">
+                    {contentBlock.body}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Announcement Dialog */}
-      <Dialog open={showAnnouncement} onOpenChange={setShowAnnouncement}>
-        <DialogContent className="max-w-md">
+      {/* Content Block Dialog */}
+      <Dialog open={showContentBlock} onOpenChange={setShowContentBlock}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              {announcement?.title}
+              {contentBlock?.title}
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setShowAnnouncement(false)}
+                onClick={() => setShowContentBlock(false)}
               >
                 <X className="h-4 w-4" />
               </Button>
             </DialogTitle>
           </DialogHeader>
-          <DialogDescription className="text-base">
-            {announcement?.content}
-          </DialogDescription>
+          <div className="space-y-4">
+            {contentBlock?.image_url && (
+              <img
+                src={contentBlock.image_url}
+                alt={contentBlock.title}
+                className="w-full max-h-64 object-cover rounded-lg"
+                onError={(e) => {
+                  console.error('Error loading image:', contentBlock.image_url);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <DialogDescription className="text-base whitespace-pre-wrap">
+              {contentBlock?.body}
+            </DialogDescription>
+          </div>
           <div className="flex justify-end pt-4">
-            <Button onClick={() => setShowAnnouncement(false)}>
+            <Button onClick={() => setShowContentBlock(false)}>
               Verstanden
             </Button>
           </div>
