@@ -61,6 +61,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				'loyalty-gold': {
+					DEFAULT: 'hsl(var(--loyalty-gold))',
+					foreground: 'hsl(var(--loyalty-gold-foreground))'
+				},
+				'loyalty-silver': {
+					DEFAULT: 'hsl(var(--loyalty-silver))',
+					foreground: 'hsl(var(--loyalty-silver-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
 				}
 			},
 			borderRadius: {
