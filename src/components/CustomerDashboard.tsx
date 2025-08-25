@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
+import { RankDisplay } from '@/components/RankDisplay'
 
 interface Customer {
   id: string
@@ -297,55 +298,12 @@ export function CustomerDashboard() {
         </div>
 
         {/* Points and QR Code Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-primary">
-                <Star className="w-5 h-5" />
-                Ihre Treuepunkte
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Current Rank */}
-                <div className="text-center">
-                  {(() => {
-                    const rank = getRankByPoints(customer.total_points);
-                    const pointsToNext = getPointsToNextRank(customer.total_points);
-                    return (
-                      <div className="space-y-2">
-                        <div className="text-2xl">{rank.emoji}</div>
-                        <Badge variant="outline" className="text-sm">
-                          {rank.name}
-                        </Badge>
-                        {pointsToNext && (
-                          <p className="text-xs text-muted-foreground">
-                            Noch {pointsToNext} Punkte bis zum nächsten Rang
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-                
-                {/* Points Display */}
-                <div className="text-center space-y-2">
-                  <div className="text-4xl font-bold text-primary">
-                    {customer.points}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Aktive Punkte (für Belohnungen)
-                  </p>
-                  <div className="text-lg font-medium text-muted-foreground">
-                    {customer.total_points} gesammelte Punkte insgesamt
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    1 Euro = 1 Punkt beim Einkauf
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Rank Display */}
+          <RankDisplay 
+            totalPoints={customer.total_points} 
+            currentPoints={customer.points}
+          />
 
           <Card>
             <CardHeader>
