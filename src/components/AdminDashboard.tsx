@@ -251,10 +251,10 @@ export function AdminDashboard() {
         .insert([
           {
             customer_id: scannedCustomerId,
-            type: 'earn',
+            type: 'purchase',
             points_earned: points,
             amount: 0,
-            description: `Punkte per QR-Scan erhalten`
+            description: `POS +${points} Punkte`
           }
         ])
 
@@ -273,7 +273,7 @@ export function AdminDashboard() {
 
       toast({
         title: "Punkte hinzugefügt",
-        description: `${points} Punkte wurden ${scannedCustomer.name} gutgeschrieben.`
+        description: `${points} Punkte wurden ${scannedCustomer.name} gutgeschrieben. Neuer Punktestand: ${scannedCustomer.points + points}`
       })
 
       // Refresh data and reset scanner
@@ -285,7 +285,7 @@ export function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Fehler beim Hinzufügen der Punkte."
+        description: error instanceof Error ? error.message : "Fehler beim Hinzufügen der Punkte."
       })
     } finally {
       setLoading(false)
