@@ -199,6 +199,107 @@ export type Database = {
         }
         Relationships: []
       }
+      offers: {
+        Row: {
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          hero_image_url: string | null
+          id: string
+          is_active: boolean
+          limit_total: number
+          pickup_date: string | null
+          price_cents: number
+          sold_count: number
+          starts_at: string | null
+          subtitle: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          hero_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          limit_total: number
+          pickup_date?: string | null
+          price_cents: number
+          sold_count?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          hero_image_url?: string | null
+          id?: string
+          is_active?: boolean
+          limit_total?: number
+          pickup_date?: string | null
+          price_cents?: number
+          sold_count?: number
+          starts_at?: string | null
+          subtitle?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          offer_id: string
+          qty: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          offer_id: string
+          qty: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          offer_id?: string
+          qty?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_admin: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          is_admin?: boolean
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean
+        }
+        Relationships: []
+      }
       rewards: {
         Row: {
           active: boolean | null
@@ -308,6 +409,13 @@ export type Database = {
       check_and_award_badges: {
         Args: { customer_uuid: string }
         Returns: number
+      }
+      purchase_offer: {
+        Args: { p_offer_id: string; p_qty?: number }
+        Returns: {
+          order_id: string
+          remaining: number
+        }[]
       }
     }
     Enums: {
