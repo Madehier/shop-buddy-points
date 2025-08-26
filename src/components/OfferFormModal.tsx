@@ -313,7 +313,7 @@ export default function OfferFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-2xl w-full p-6" data-ux-version="2025-08-26-ux1" data-testid="offer-form-modal">
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] p-6 overflow-y-auto" data-ux-version="2025-08-26-ux1" data-testid="offer-form-modal">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>
@@ -389,7 +389,7 @@ export default function OfferFormModal({
                   <img
                     src={formData.hero_image_url}
                     alt=""
-                    className="aspect-video w-full rounded-lg object-cover"
+                    className="h-48 w-full rounded-lg object-cover"
                   />
                 )}
 
@@ -431,8 +431,9 @@ export default function OfferFormModal({
 
               {/* Price */}
               <div className="space-y-2">
-                <Label htmlFor="price_cents">Preis (€)</Label>
-                <div className="flex items-center gap-2">
+                <Label htmlFor="price_cents">Preis</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
                   <Input
                     id="price_cents"
                     type="number"
@@ -440,14 +441,12 @@ export default function OfferFormModal({
                     min="0"
                     value={(formData.price_cents / 100).toFixed(2)}
                     onChange={(e) => handleInputChange('price_cents', Math.round(parseFloat(e.target.value || '0') * 100))}
-                    placeholder="0.00"
-                    className="flex-1"
+                    placeholder="0,00"
+                    className="pl-8"
                     data-testid="input-price-cents"
                   />
-                  <span className="text-sm text-muted-foreground">
-                    = {formData.price_cents} Cent
-                  </span>
                 </div>
+                <p className="text-xs text-muted-foreground">Eingabe in Euro (wird als {formData.price_cents} Cent gespeichert)</p>
               </div>
 
               {/* Limit Total */}
