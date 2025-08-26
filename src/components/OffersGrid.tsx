@@ -57,7 +57,7 @@ export default function OffersGrid() {
   useEffect(() => {
     fetchOffers();
 
-    // Set up realtime subscription
+  // Set up realtime subscription
     const channel = supabase
       .channel('offers-changes')
       .on(
@@ -68,11 +68,16 @@ export default function OffersGrid() {
           table: 'offers'
         },
         (payload) => {
-          console.log('Offers realtime update:', payload);
+          console.log('🔄 Grid realtime update:', payload.eventType, 'for offer:', (payload.new as any)?.id || (payload.old as any)?.id);
+          if (payload.eventType === 'UPDATE' && (payload.new as any)?.sold_count !== (payload.old as any)?.sold_count) {
+            console.log('📊 Sold count changed in grid:', (payload.old as any)?.sold_count, '→', (payload.new as any)?.sold_count);
+          }
           fetchOffers(); // Refetch on any change
         }
       )
       .subscribe();
+
+    console.log('📡 Grid realtime subscription active');
 
     return () => {
       supabase.removeChannel(channel);

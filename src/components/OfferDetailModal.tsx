@@ -88,13 +88,19 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
           filter: `id=eq.${offerId}`
         },
         (payload) => {
-          console.log('Offer realtime update:', payload);
+          console.log('🔄 Offer realtime update received:', payload);
+          console.log('📊 sold_count updated:', payload.old?.sold_count, '→', payload.new?.sold_count);
           if (payload.new) {
-            setOffer(prev => prev ? { ...prev, sold_count: payload.new.sold_count } : null);
+            setOffer(prev => prev ? { 
+              ...prev, 
+              sold_count: payload.new.sold_count 
+            } : null);
           }
         }
       )
       .subscribe();
+
+    console.log('📡 Realtime subscription active for offer:', offerId);
 
     return () => {
       supabase.removeChannel(channel);
