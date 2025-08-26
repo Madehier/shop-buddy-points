@@ -39,6 +39,9 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Debug auth state
+  console.log('Auth state in modal:', { user: user ? { id: user.id, email: user.email } : null });
+
   const isOpen = Boolean(offerId);
 
   // Fetch offer data
@@ -177,6 +180,7 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
   };
 
   const handleLogin = async () => {
+    console.log('handleLogin called - redirecting to auth page');
     // Trigger Supabase Auth UI (you might want to implement this differently based on your auth setup)
     window.location.href = '/auth';
   };
@@ -261,6 +265,9 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
               </div>
             ) : (
               <div className="space-y-3 pt-2">
+                <p className="text-xs text-muted-foreground">
+                  Eingeloggt als: {user.email}
+                </p>
                 {/* Quantity Selector */}
                 {!isDisabled && remaining > 0 && (
                   <div className="space-y-2">
