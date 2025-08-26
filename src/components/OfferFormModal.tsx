@@ -55,7 +55,14 @@ export default function OfferFormModal({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Helper functions
+  const toISO = (v: string) => (v ? new Date(v).toISOString() : null);
+  const fmtDE = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+  const toastOk = (msg: string) => toast({ title: "Erfolg", description: msg });
+  const toastErr = (msg: string) => toast({ title: "Fehler", description: msg, variant: "destructive" });
 
   const [formData, setFormData] = useState({
     title: '',
@@ -177,11 +184,7 @@ export default function OfferFormModal({
       });
     } catch (error: any) {
       console.error('Error uploading image:', error);
-      toast({
-        title: "Fehler",
-        description: "Fehler beim Hochladen des Bildes.",
-        variant: "destructive",
-      });
+      toastErr("Upload fehlgeschlagen");
     } finally {
       setUploading(false);
     }
@@ -189,47 +192,27 @@ export default function OfferFormModal({
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      toast({
-        title: "Fehler",
-        description: "Titel ist erforderlich.",
-        variant: "destructive",
-      });
+      toastErr("Eingabe prüfen");
       return false;
     }
 
     if (formData.title.length > 120) {
-      toast({
-        title: "Fehler",
-        description: "Titel darf maximal 120 Zeichen haben.",
-        variant: "destructive",
-      });
+      toastErr("Eingabe prüfen");
       return false;
     }
 
     if (formData.subtitle && formData.subtitle.length > 160) {
-      toast({
-        title: "Fehler",
-        description: "Untertitel darf maximal 160 Zeichen haben.",
-        variant: "destructive",
-      });
+      toastErr("Eingabe prüfen");
       return false;
     }
 
     if (formData.price_cents < 0) {
-      toast({
-        title: "Fehler", 
-        description: "Preis muss positiv sein.",
-        variant: "destructive",
-      });
+      toastErr("Eingabe prüfen");
       return false;
     }
 
     if (formData.limit_total < 0) {
-      toast({
-        title: "Fehler",
-        description: "Limit muss positiv sein.",
-        variant: "destructive",
-      });
+      toastErr("Eingabe prüfen");
       return false;
     }
 
@@ -238,11 +221,7 @@ export default function OfferFormModal({
       const startDate = new Date(formData.starts_at);
       const endDate = new Date(formData.ends_at);
       if (endDate <= startDate) {
-        toast({
-          title: "Fehler",
-          description: "Enddatum muss nach dem Startdatum liegen.",
-          variant: "destructive",
-        });
+        toastErr("Eingabe prüfen");
         return false;
       }
     }
@@ -255,7 +234,7 @@ export default function OfferFormModal({
     
     if (!validateForm()) return;
 
-    setSaving(true);
+    setIsSubmitting(true);
     try {
       const offerData = {
         title: formData.title.trim(),
@@ -263,9 +242,9 @@ export default function OfferFormModal({
         description: formData.description.trim() || null,
         hero_image_url: formData.hero_image_url.trim() || null,
         price_cents: formData.price_cents,
-        pickup_date: parseLocalDateTime(formData.pickup_date),
-        starts_at: parseLocalDateTime(formData.starts_at),
-        ends_at: parseLocalDateTime(formData.ends_at),
+        pickup_date: toISO(formData.pickup_date),
+        starts_at: toISO(formData.starts_at),
+        ends_at: toISO(formData.ends_at),
         limit_total: formData.limit_total,
         is_active: formData.is_active,
       };
@@ -277,10 +256,7 @@ export default function OfferFormModal({
 
         if (error) throw error;
 
-        toast({
-          title: "Erfolg",
-          description: "Angebot wurde erstellt.",
-        });
+        toastOk("Gespeichert");
       } else {
         const { error } = await supabase
           .from('offers')
@@ -289,23 +265,16 @@ export default function OfferFormModal({
 
         if (error) throw error;
 
-        toast({
-          title: "Erfolg", 
-          description: "Angebot wurde aktualisiert.",
-        });
+        toastOk("Gespeichert");
       }
 
       onSuccess?.();
       onClose();
     } catch (error: any) {
       console.error('Error saving offer:', error);
-      toast({
-        title: "Fehler",
-        description: error.message || "Fehler beim Speichern.",
-        variant: "destructive",
-      });
+      toastErr(error.message || "Fehler beim Speichern.");
     } finally {
-      setSaving(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -344,7 +313,7 @@ export default function OfferFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-full p-6" data-ux-version="2025-08-26-ux1" data-testid="offer-form-modal">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>
@@ -362,191 +331,202 @@ export default function OfferFormModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">
-                Titel * 
-                <span className="text-xs text-muted-foreground ml-1">
-                  ({formData.title.length}/120)
-                </span>
-              </Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Angebots-Titel"
-                maxLength={120}
-                required
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Title */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="title">
+                  Titel * 
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({formData.title.length}/120)
+                  </span>
+                </Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Angebots-Titel"
+                  maxLength={120}
+                  required
+                  data-testid="input-title"
+                />
+              </div>
 
-            {/* Subtitle */}
-            <div className="space-y-2">
-              <Label htmlFor="subtitle">
-                Untertitel 
-                <span className="text-xs text-muted-foreground ml-1">
-                  ({formData.subtitle.length}/160)
-                </span>
-              </Label>
-              <Input
-                id="subtitle"
-                value={formData.subtitle}
-                onChange={(e) => handleInputChange('subtitle', e.target.value)}
-                placeholder="Kurzer Untertitel"
-                maxLength={160}
-              />
-            </div>
+              {/* Subtitle */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="subtitle">
+                  Untertitel 
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({formData.subtitle.length}/160)
+                  </span>
+                </Label>
+                <Input
+                  id="subtitle"
+                  value={formData.subtitle}
+                  onChange={(e) => handleInputChange('subtitle', e.target.value)}
+                  placeholder="Kurzer Untertitel"
+                  maxLength={160}
+                />
+              </div>
 
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">Beschreibung</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Detaillierte Beschreibung (Markdown unterstützt)"
-                rows={4}
-              />
-            </div>
+              {/* Description */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="description">Beschreibung</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Detaillierte Beschreibung (Markdown unterstützt)"
+                  rows={4}
+                />
+              </div>
 
-            {/* Hero Image */}
-            <div className="space-y-2">
-              <Label>Hero-Bild</Label>
-              
-              {/* Image Preview */}
-              {formData.hero_image_url && (
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted">
+              {/* Hero Image */}
+              <div className="space-y-2 md:col-span-2">
+                <Label>Hero-Bild</Label>
+                
+                {/* Image Preview */}
+                {formData.hero_image_url && (
                   <img
                     src={formData.hero_image_url}
-                    alt="Hero preview"
-                    className="w-full h-full object-cover"
+                    alt=""
+                    className="aspect-video w-full rounded-lg object-cover"
+                  />
+                )}
+
+                <div className="flex gap-2">
+                  {/* Upload Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('hero-upload')?.click()}
+                    disabled={uploading}
+                    className="flex items-center gap-2"
+                  >
+                    {uploading ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    {uploading ? 'Lädt hoch...' : 'Bild hochladen'}
+                  </Button>
+
+                  <input
+                    id="hero-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+
+                  {/* URL Input */}
+                  <Input
+                    placeholder="Oder Bild-URL eingeben"
+                    value={formData.hero_image_url}
+                    onChange={(e) => handleInputChange('hero_image_url', e.target.value)}
+                    className="flex-1"
+                    data-testid="input-hero-url"
                   />
                 </div>
+              </div>
+
+              {/* Price */}
+              <div className="space-y-2">
+                <Label htmlFor="price_cents">Preis (€)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="price_cents"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={(formData.price_cents / 100).toFixed(2)}
+                    onChange={(e) => handleInputChange('price_cents', Math.round(parseFloat(e.target.value || '0') * 100))}
+                    placeholder="0.00"
+                    className="flex-1"
+                    data-testid="input-price-cents"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    = {formData.price_cents} Cent
+                  </span>
+                </div>
+              </div>
+
+              {/* Limit Total */}
+              <div className="space-y-2">
+                <Label htmlFor="limit_total">Verfügbare Menge *</Label>
+                <Input
+                  id="limit_total"
+                  type="number"
+                  min="0"
+                  value={formData.limit_total}
+                  onChange={(e) => handleInputChange('limit_total', parseInt(e.target.value) || 0)}
+                  required
+                  data-testid="input-limit-total"
+                />
+              </div>
+
+              {/* Readonly Fields (Edit Mode) */}
+              {mode === 'edit' && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Verkauft</Label>
+                    <div className="text-lg font-semibold" data-testid="sold-count">{formData.sold_count}</div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Verbleibend</Label>
+                    <div className="text-lg font-semibold" data-testid="remaining-value">{Math.max(0, formData.limit_total - formData.sold_count)}</div>
+                  </div>
+                </>
               )}
 
-              <div className="flex gap-2">
-                {/* Upload Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('hero-upload')?.click()}
-                  disabled={uploading}
-                  className="flex items-center gap-2"
-                >
-                  {uploading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  {uploading ? 'Lädt hoch...' : 'Bild hochladen'}
-                </Button>
-
-                <input
-                  id="hero-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-
-                {/* URL Input */}
+              {/* Start Date */}
+              <div className="space-y-2">
+                <Label htmlFor="starts_at">Verfügbar ab</Label>
                 <Input
-                  placeholder="Oder Bild-URL eingeben"
-                  value={formData.hero_image_url}
-                  onChange={(e) => handleInputChange('hero_image_url', e.target.value)}
-                  className="flex-1"
+                  id="starts_at"
+                  type="datetime-local"
+                  value={formData.starts_at}
+                  onChange={(e) => handleInputChange('starts_at', e.target.value)}
+                  data-testid="input-starts-at"
                 />
               </div>
-            </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <Label htmlFor="price_cents">Preis (€)</Label>
-              <div className="flex items-center gap-2">
+              {/* End Date */}
+              <div className="space-y-2">
+                <Label htmlFor="ends_at">Verfügbar bis</Label>
                 <Input
-                  id="price_cents"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={(formData.price_cents / 100).toFixed(2)}
-                  onChange={(e) => handleInputChange('price_cents', Math.round(parseFloat(e.target.value || '0') * 100))}
-                  placeholder="0.00"
-                  className="flex-1"
+                  id="ends_at"
+                  type="datetime-local"
+                  value={formData.ends_at}
+                  onChange={(e) => handleInputChange('ends_at', e.target.value)}
+                  data-testid="input-ends-at"
                 />
-                <span className="text-sm text-muted-foreground">
-                  = {formData.price_cents} Cent
-                </span>
               </div>
-            </div>
 
-            {/* Limit Total */}
-            <div className="space-y-2">
-              <Label htmlFor="limit_total">Verfügbare Menge *</Label>
-              <Input
-                id="limit_total"
-                type="number"
-                min="0"
-                value={formData.limit_total}
-                onChange={(e) => handleInputChange('limit_total', parseInt(e.target.value) || 0)}
-                required
-              />
-            </div>
-
-            {/* Readonly Fields (Edit Mode) */}
-            {mode === 'edit' && (
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
-                <div>
-                  <Label className="text-sm text-muted-foreground">Verkauft</Label>
-                  <div className="text-lg font-semibold">{formData.sold_count}</div>
-                </div>
-                <div>
-                  <Label className="text-sm text-muted-foreground">Verbleibend</Label>
-                  <div className="text-lg font-semibold">{remainingCount}</div>
-                </div>
+              {/* Pickup Date */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="pickup_date">Abholtermin</Label>
+                <Input
+                  id="pickup_date"
+                  type="datetime-local"
+                  value={formData.pickup_date}
+                  onChange={(e) => handleInputChange('pickup_date', e.target.value)}
+                />
               </div>
-            )}
 
-            {/* Pickup Date */}
-            <div className="space-y-2">
-              <Label htmlFor="pickup_date">Abholtermin</Label>
-              <Input
-                id="pickup_date"
-                type="datetime-local"
-                value={formData.pickup_date}
-                onChange={(e) => handleInputChange('pickup_date', e.target.value)}
-              />
-            </div>
-
-            {/* Start Date */}
-            <div className="space-y-2">
-              <Label htmlFor="starts_at">Verfügbar ab</Label>
-              <Input
-                id="starts_at"
-                type="datetime-local"
-                value={formData.starts_at}
-                onChange={(e) => handleInputChange('starts_at', e.target.value)}
-              />
-            </div>
-
-            {/* End Date */}
-            <div className="space-y-2">
-              <Label htmlFor="ends_at">Verfügbar bis</Label>
-              <Input
-                id="ends_at"
-                type="datetime-local"
-                value={formData.ends_at}
-                onChange={(e) => handleInputChange('ends_at', e.target.value)}
-              />
-            </div>
-
-            {/* Active Switch */}
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => handleInputChange('is_active', checked)}
-              />
-              <Label htmlFor="is_active">Aktiv</Label>
+              {/* Active Switch */}
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+                  />
+                  <Label htmlFor="is_active">Aktiv</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Aktiv macht das Angebot sofort sichtbar, sofern es im Zeitfenster liegt.
+                </p>
+              </div>
             </div>
 
             {/* Actions */}
@@ -554,8 +534,14 @@ export default function OfferFormModal({
               <Button type="button" variant="outline" onClick={onClose}>
                 Abbrechen
               </Button>
-              <Button type="submit" disabled={saving} className="flex-1">
-                {saving ? 'Speichert...' : mode === 'create' ? 'Erstellen' : 'Speichern'}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                aria-busy={isSubmitting}
+                className="flex-1"
+                data-testid="btn-save-offer"
+              >
+                {isSubmitting ? 'Speichert...' : mode === 'create' ? 'Erstellen' : 'Speichern'}
               </Button>
             </div>
           </form>

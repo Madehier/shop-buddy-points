@@ -53,6 +53,11 @@ export default function AdminOffersPage() {
   const [selectedOfferId, setSelectedOfferId] = useState<string>();
   const { toast } = useToast();
 
+  // Helper functions
+  const fmtDE = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' });
+  const toastOk = (msg: string) => toast({ title: "Erfolg", description: msg });
+  const toastErr = (msg: string) => toast({ title: "Fehler", description: msg, variant: "destructive" });
+
   const fetchOffers = async () => {
     setLoading(true);
     try {
@@ -130,9 +135,6 @@ export default function AdminOffersPage() {
 
   const handleDuplicate = async (offer: Offer) => {
     try {
-      const now = new Date();
-      const startsAt = new Date(now.getTime() + 60 * 60 * 1000); // +1 hour
-
       const duplicatedOffer = {
         title: `[Kopie] ${offer.title}`,
         subtitle: offer.subtitle,
@@ -140,7 +142,7 @@ export default function AdminOffersPage() {
         hero_image_url: offer.hero_image_url,
         price_cents: offer.price_cents,
         pickup_date: offer.pickup_date,
-        starts_at: startsAt.toISOString(),
+        starts_at: null,
         ends_at: null,
         limit_total: offer.limit_total,
         sold_count: 0,
@@ -155,10 +157,7 @@ export default function AdminOffersPage() {
 
       if (error) throw error;
 
-      toast({
-        title: "Erfolg",
-        description: "Angebot wurde dupliziert.",
-      });
+      toastOk("Kopie erstellt (inaktiv)");
 
       // Open editor for the duplicated offer  
       setSelectedOfferId(data.id);
@@ -166,11 +165,7 @@ export default function AdminOffersPage() {
       setModalOpen(true);
     } catch (error: any) {
       console.error('Error duplicating offer:', error);
-      toast({
-        title: "Fehler",
-        description: "Angebot konnte nicht dupliziert werden.",
-        variant: "destructive",
-      });
+      toastErr("Angebot konnte nicht dupliziert werden.");
     }
   };
 
@@ -183,32 +178,22 @@ export default function AdminOffersPage() {
 
       if (error) throw error;
 
-      toast({
-        title: "Erfolg",
-        description: `Angebot wurde ${!currentActive ? 'aktiviert' : 'deaktiviert'}.`,
-      });
+      toastOk(`Angebot wurde ${!currentActive ? 'aktiviert' : 'deaktiviert'}.`);
     } catch (error: any) {
       console.error('Error toggling offer status:', error);
-      toast({
-        title: "Fehler",
-        description: "Status konnte nicht geändert werden.",
-        variant: "destructive",
-      });
+      toastErr("Status konnte nicht geändert werden.");
     }
   };
 
   const formatDateRange = (starts_at?: string, ends_at?: string) => {
     if (!starts_at && !ends_at) return '-';
     
-    const formatDate = (dateStr: string) => 
-      format(new Date(dateStr), 'dd.MM.yyyy HH:mm', { locale: de });
-    
     if (starts_at && ends_at) {
-      return `${formatDate(starts_at)} → ${formatDate(ends_at)}`;
+      return `${fmtDE.format(new Date(starts_at))} → ${fmtDE.format(new Date(ends_at))}`;
     } else if (starts_at) {
-      return `ab ${formatDate(starts_at)}`;
+      return `ab ${fmtDE.format(new Date(starts_at))}`;
     } else {
-      return `bis ${formatDate(ends_at!)}`;
+      return `bis ${fmtDE.format(new Date(ends_at!))}`;
     }
   };
 
@@ -251,9 +236,9 @@ export default function AdminOffersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
+      <div className="p-6" data-ux-version="2025-08-26-ux1">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <h1 className="text-3xl font-bold">Angebote</h1>
           <div className="flex gap-2">
             <Button 
@@ -308,18 +293,18 @@ export default function AdminOffersPage() {
         {/* Table */}
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <Table>
+            <Table data-testid="admin-offers-table">
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="sticky top-0 bg-muted/50">Titel</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Zeitraum</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Preis</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Limit</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Verkauft</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Rest</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Aktiv</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Updated</TableHead>
-                  <TableHead className="sticky top-0 bg-muted/50">Aktionen</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Titel</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Zeitraum</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Preis</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Limit</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Verkauft</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Rest</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Aktiv</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Updated</TableHead>
+                  <TableHead className="sticky top-0 z-10 bg-white text-xs font-semibold uppercase tracking-wide">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,9 +326,9 @@ export default function AdminOffersPage() {
                   </TableRow>
                 ) : (
                   offers.map((offer) => {
-                    const remaining = getRemainingCount(offer);
+                    const remaining = Math.max(0, offer.limit_total - offer.sold_count);
                     return (
-                      <TableRow key={offer.id} className="hover:bg-muted/25">
+                      <TableRow key={offer.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div>
                             <div className="font-medium">{offer.title}</div>
@@ -362,17 +347,23 @@ export default function AdminOffersPage() {
                         <TableCell>{offer.sold_count}</TableCell>
                         <TableCell>
                           {remaining > 0 ? (
-                            <span className="text-green-600">{remaining}</span>
+                            <span className="text-green-600" data-testid="remaining-value">{remaining}</span>
                           ) : (
-                            <Badge variant="destructive" className="text-xs">
+                            <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700" data-testid="badge-ausverkauft">
                               Ausverkauft
-                            </Badge>
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={offer.is_active ? "default" : "secondary"}>
-                            {offer.is_active ? 'Aktiv' : 'Inaktiv'}
-                          </Badge>
+                          {offer.is_active ? (
+                            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800" data-testid="badge-aktiv">
+                              Aktiv
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800" data-testid="badge-inaktiv">
+                              Inaktiv
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatRelativeTime(offer.created_at)}
@@ -421,33 +412,31 @@ export default function AdminOffersPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6">
-            <div className="text-sm text-muted-foreground">
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <div className="text-sm text-muted-foreground mr-4">
               Zeigt {((currentPage - 1) * ITEMS_PER_PAGE) + 1} bis {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} von {totalCount} Angeboten
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Zurück
-              </Button>
-              <span className="text-sm">
-                Seite {currentPage} von {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Weiter
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Zurück
+            </Button>
+            <span className="text-sm">
+              Seite {currentPage} von {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Weiter
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         )}
 
