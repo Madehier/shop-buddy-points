@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock, Filter, Eye, ShoppingBag } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Edit, Trash2, Gift, History, CheckCircle, Clock, Filter, Eye, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -34,15 +34,6 @@ interface Reward {
   active: boolean
 }
 
-interface ContentBlock {
-  id: string
-  title: string
-  image_url: string | null
-  body: string
-  active: boolean
-  created_at: string
-  updated_at: string
-}
 
 interface Claim {
   id: string
@@ -75,7 +66,6 @@ interface Transaction {
 export function AdminDashboard() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [rewards, setRewards] = useState<Reward[]>([])
-  const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [stats, setStats] = useState({
@@ -96,12 +86,6 @@ export function AdminDashboard() {
     points_required: 0,
     description: ''
   })
-  const [newContentBlock, setNewContentBlock] = useState({
-    title: '',
-    body: '',
-    image_url: null as string | null
-  })
-  const [editingContentBlock, setEditingContentBlock] = useState<ContentBlock | null>(null)
   const [addPointsData, setAddPointsData] = useState({
     customerId: '',
     points: 0,
@@ -113,8 +97,6 @@ export function AdminDashboard() {
   const [processingPurchase, setProcessingPurchase] = useState(false)
   const [pointsPerEuro, setPointsPerEuro] = useState('1.0')
   const [savingSettings, setSavingSettings] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { signOut } = useAuth()
 
@@ -126,7 +108,6 @@ export function AdminDashboard() {
     await Promise.all([
       fetchCustomers(),
       fetchRewards(),
-      fetchContentBlocks(),
       fetchClaims(),
       fetchTransactions(),
       fetchStats(),
@@ -161,18 +142,6 @@ export function AdminDashboard() {
     }
   }
 
-  const fetchContentBlocks = async () => {
-    const { data, error } = await supabase
-      .from('content_blocks')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching content blocks:', error)
-    } else {
-      setContentBlocks(data || [])
-    }
-  }
 
   const fetchClaims = async () => {
     const { data, error } = await supabase
@@ -368,177 +337,7 @@ export function AdminDashboard() {
     fetchRewards()
   }
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random()}.${fileExt}`
-      const filePath = `content-images/${fileName}`
 
-      const { error: uploadError } = await supabase.storage
-        .from('content-images')
-        .upload(filePath, file)
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('content-images')
-        .getPublicUrl(filePath)
-
-      return publicUrl
-    } catch (error) {
-      console.error('Error uploading image:', error)
-      toast({
-        title: "Upload-Fehler",
-        description: "Bild konnte nicht hochgeladen werden.",
-        variant: "destructive",
-      })
-      return null
-    }
-  }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploadingImage(true)
-    const imageUrl = await uploadImage(file)
-    if (imageUrl) {
-      if (editingContentBlock) {
-        setEditingContentBlock({ ...editingContentBlock, image_url: imageUrl })
-      } else {
-        setNewContentBlock({ ...newContentBlock, image_url: imageUrl })
-      }
-      toast({
-        title: "Bild hochgeladen",
-        description: "Das Bild wurde erfolgreich hochgeladen.",
-      })
-    }
-    setUploadingImage(false)
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
-
-  const createContentBlock = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!newContentBlock.title.trim() || !newContentBlock.body.trim()) {
-      toast({
-        title: "Fehler",
-        description: "Titel und Inhalt sind erforderlich.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const { error } = await supabase
-      .from('content_blocks')
-      .insert({
-        title: newContentBlock.title,
-        body: newContentBlock.body,
-        image_url: newContentBlock.image_url,
-        active: true
-      })
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Content-Block konnte nicht erstellt werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Content-Block erstellt",
-      description: `${newContentBlock.title} wurde erfolgreich erstellt.`,
-    })
-
-    setNewContentBlock({ title: '', body: '', image_url: null })
-    fetchContentBlocks()
-  }
-
-  const updateContentBlock = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!editingContentBlock) return
-
-    const { error } = await supabase
-      .from('content_blocks')
-      .update({
-        title: editingContentBlock.title,
-        body: editingContentBlock.body,
-        image_url: editingContentBlock.image_url
-      })
-      .eq('id', editingContentBlock.id)
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Content-Block konnte nicht aktualisiert werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Content-Block aktualisiert",
-      description: "Der Content-Block wurde erfolgreich aktualisiert.",
-    })
-
-    setEditingContentBlock(null)
-    fetchContentBlocks()
-  }
-
-  const toggleContentBlock = async (contentBlockId: string, active: boolean) => {
-    const { error } = await supabase
-      .from('content_blocks')
-      .update({ active: !active })
-      .eq('id', contentBlockId)
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Content-Block konnte nicht aktualisiert werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Status geändert",
-      description: `Content-Block wurde ${!active ? 'aktiviert' : 'deaktiviert'}.`,
-    })
-
-    fetchContentBlocks()
-  }
-
-  const deleteContentBlock = async (contentBlockId: string) => {
-    const { error } = await supabase
-      .from('content_blocks')
-      .delete()
-      .eq('id', contentBlockId)
-
-    if (error) {
-      toast({
-        title: "Fehler",
-        description: "Content-Block konnte nicht gelöscht werden.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Content-Block gelöscht",
-      description: "Der Content-Block wurde erfolgreich gelöscht.",
-    })
-
-    fetchContentBlocks()
-  }
 
   const handleQRScan = async (code: string) => {
     try {
@@ -739,14 +538,13 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="claims">Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
             <TabsTrigger value="history">Punkte-Historie</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
             <TabsTrigger value="settings">Einstellungen</TabsTrigger>
           </TabsList>
 
@@ -1410,184 +1208,6 @@ export function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="content">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold">Content-Blocks verwalten</h3>
-                  <p className="text-muted-foreground">Erstellen und verwalten Sie Content-Blocks mit Bildern und Text</p>
-                </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Neuer Content-Block
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Neuen Content-Block erstellen</DialogTitle>
-                      <DialogDescription>
-                        Erstellen Sie einen neuen Content-Block mit Bild und Text
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={createContentBlock} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="content-title">Titel</Label>
-                        <Input
-                          id="content-title"
-                          value={newContentBlock.title}
-                          onChange={(e) => setNewContentBlock({...newContentBlock, title: e.target.value})}
-                          placeholder="z.B. Willkommen in unserem Shop!"
-                          required
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Bild hochladen (optional)</Label>
-                        <div className="space-y-2">
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={uploadingImage}
-                            className="w-full"
-                          >
-                            {uploadingImage ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                                Wird hochgeladen...
-                              </>
-                            ) : (
-                              <>
-                                <Upload className="w-4 h-4 mr-2" />
-                                Bild auswählen
-                              </>
-                            )}
-                          </Button>
-                          {newContentBlock.image_url && (
-                            <div className="relative">
-                              <img
-                                src={newContentBlock.image_url}
-                                alt="Preview"
-                                className="w-full h-32 object-cover rounded border"
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="absolute top-1 right-1"
-                                onClick={() => setNewContentBlock({...newContentBlock, image_url: null})}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="content-body">Inhalt</Label>
-                        <Textarea
-                          id="content-body"
-                          value={newContentBlock.body}
-                          onChange={(e) => setNewContentBlock({...newContentBlock, body: e.target.value})}
-                          placeholder="Ihr Content-Text..."
-                          rows={6}
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        <FileImage className="w-4 h-4 mr-2" />
-                        Content-Block erstellen
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Alle Content-Blocks</CardTitle>
-                  <CardDescription>
-                    Nur ein Content-Block kann gleichzeitig aktiv sein
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {contentBlocks.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">Keine Content-Blocks vorhanden.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {contentBlocks.map((contentBlock) => (
-                        <div key={contentBlock.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="flex justify-between items-start gap-4">
-                            <div className="flex-1 space-y-2">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold">{contentBlock.title}</h3>
-                                <Badge variant={contentBlock.active ? "default" : "secondary"}>
-                                  {contentBlock.active ? "Aktiv" : "Inaktiv"}
-                                </Badge>
-                              </div>
-                              
-                              {contentBlock.image_url && (
-                                <img
-                                  src={contentBlock.image_url}
-                                  alt={contentBlock.title}
-                                  className="w-full max-w-md h-32 object-cover rounded border"
-                                />
-                              )}
-                              
-                              <p className="text-sm text-muted-foreground">
-                                {contentBlock.body}
-                              </p>
-                              
-                              <p className="text-xs text-muted-foreground">
-                                Erstellt: {new Date(contentBlock.created_at).toLocaleDateString('de-DE', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
-                            </div>
-                            
-                            <div className="flex flex-col gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingContentBlock(contentBlock)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Switch
-                                checked={contentBlock.active}
-                                onCheckedChange={() => toggleContentBlock(contentBlock.id, contentBlock.active)}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => deleteContentBlock(contentBlock.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
 
           <TabsContent value="settings">
             <Card>
@@ -1641,100 +1261,6 @@ export function AdminDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Edit Content Block Dialog */}
-        <Dialog open={!!editingContentBlock} onOpenChange={() => setEditingContentBlock(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Content-Block bearbeiten</DialogTitle>
-              <DialogDescription>
-                Bearbeiten Sie den Content-Block
-              </DialogDescription>
-            </DialogHeader>
-            {editingContentBlock && (
-              <form onSubmit={updateContentBlock} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-content-title">Titel</Label>
-                  <Input
-                    id="edit-content-title"
-                    value={editingContentBlock.title}
-                    onChange={(e) => setEditingContentBlock({...editingContentBlock, title: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Bild</Label>
-                  <div className="space-y-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="w-full"
-                    >
-                      {uploadingImage ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                          Wird hochgeladen...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Neues Bild wählen
-                        </>
-                      )}
-                    </Button>
-                    {editingContentBlock.image_url && (
-                      <div className="relative">
-                        <img
-                          src={editingContentBlock.image_url}
-                          alt="Preview"
-                          className="w-full h-32 object-cover rounded border"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-1 right-1"
-                          onClick={() => setEditingContentBlock({...editingContentBlock, image_url: null})}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="edit-content-body">Inhalt</Label>
-                  <Textarea
-                    id="edit-content-body"
-                    value={editingContentBlock.body}
-                    onChange={(e) => setEditingContentBlock({...editingContentBlock, body: e.target.value})}
-                    rows={6}
-                    required
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button type="submit" className="flex-1">
-                    <FileImage className="w-4 h-4 mr-2" />
-                    Speichern
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setEditingContentBlock(null)}>
-                    Abbrechen
-                  </Button>
-                </div>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   )
