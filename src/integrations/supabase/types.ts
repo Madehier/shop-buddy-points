@@ -376,6 +376,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_cancel_order: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
+      admin_mark_picked_up: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       check_and_award_badges: {
         Args: { customer_uuid: string }
         Returns: number
