@@ -397,7 +397,7 @@ export function AdminDashboard() {
       if (error) throw error
 
       toast({
-        title: "Claim abgeholt!",
+        title: "Gutschein abgeholt!",
         description: `${claim.reward_name} wurde an ${customer?.name || 'Kunde'} ausgegeben.`
       })
 
@@ -409,7 +409,7 @@ export function AdminDashboard() {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Fehler beim Abholen des Claims."
+        description: "Fehler beim Abholen des Gutscheins."
       })
     }
   }
@@ -541,7 +541,7 @@ export function AdminDashboard() {
           <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
-            <TabsTrigger value="claims">Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
+            <TabsTrigger value="claims">Gutscheine ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
             <TabsTrigger value="history">Punkte-Historie</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
@@ -602,7 +602,7 @@ export function AdminDashboard() {
           <TabsContent value="claims">
             <Tabs defaultValue="open-claims" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="open-claims">Offene Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
+                <TabsTrigger value="open-claims">Offene Gutscheine ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
                 <TabsTrigger value="completed-claims">Abgeholt ({claims.filter(c => c.status === 'ABGEHOLT').length})</TabsTrigger>
               </TabsList>
 
@@ -611,7 +611,7 @@ export function AdminDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Clock className="w-5 h-5" />
-                      Offene Claims
+                      Offene Gutscheine
                     </CardTitle>
                     <CardDescription>
                       Eingelöste Belohnungen, die noch nicht abgeholt wurden
@@ -619,7 +619,7 @@ export function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     {claims.filter(claim => claim.status === 'EINGELÖST').length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8">Keine offenen Claims vorhanden</p>
+                      <p className="text-muted-foreground text-center py-8">Keine offenen Gutscheine vorhanden</p>
                     ) : (
                       <div className="space-y-4">
                         {claims.filter(claim => claim.status === 'EINGELÖST').map((claim) => {
@@ -662,7 +662,7 @@ export function AdminDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5" />
-                      Abgeholte Claims
+                      Abgeholte Gutscheine
                     </CardTitle>
                     <CardDescription>
                       Bereits abgeholte Belohnungen
@@ -670,7 +670,7 @@ export function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     {claims.filter(claim => claim.status === 'ABGEHOLT').length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8">Keine abgeholten Claims vorhanden</p>
+                      <p className="text-muted-foreground text-center py-8">Keine abgeholten Gutscheine vorhanden</p>
                     ) : (
                       <div className="space-y-4">
                         {claims.filter(claim => claim.status === 'ABGEHOLT').map((claim) => {

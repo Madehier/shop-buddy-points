@@ -440,7 +440,7 @@ export function CustomerDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="w-5 h-5" />
-                  Aktive Belohnungen
+                  Aktive Gutscheine
                 </CardTitle>
                 <CardDescription>
                   Ihre eingelösten Belohnungen, die noch nicht abgeholt wurden
@@ -450,7 +450,7 @@ export function CustomerDashboard() {
                 {claims.filter(claim => !claim.picked_up).length === 0 ? (
                   <div className="text-center py-8">
                     <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Keine aktiven Belohnungen</p>
+                    <p className="text-muted-foreground">Keine aktiven Gutscheine</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
