@@ -35,7 +35,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         
         {/* Subtitle */}
         <p className="mt-6 text-white text-lg md:text-xl font-medium">
-          Schön dass du wieder da bist
+          Schön, dass du wieder da bist.
         </p>
       </div>
     </div>
