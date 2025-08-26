@@ -108,6 +108,10 @@ export function AdminDashboard() {
   })
   const [scannedCustomerId, setScannedCustomerId] = useState<string | null>(null)
   const [scannedCustomer, setScannedCustomer] = useState<Customer | null>(null)
+  const [purchaseAmount, setPurchaseAmount] = useState('')
+  const [processingPurchase, setProcessingPurchase] = useState(false)
+  const [pointsPerEuro, setPointsPerEuro] = useState('1.0')
+  const [savingSettings, setSavingSettings] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
@@ -124,7 +128,8 @@ export function AdminDashboard() {
       fetchContentBlocks(),
       fetchClaims(),
       fetchTransactions(),
-      fetchStats()
+      fetchStats(),
+      fetchSettings()
     ])
     setLoading(false)
   }
@@ -215,6 +220,46 @@ export function AdminDashboard() {
       totalPoints,
       totalTransactions
     })
+  }
+
+  const fetchSettings = async () => {
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .eq('key', 'points_per_euro')
+      .single()
+
+    if (error) {
+      console.error('Error fetching settings:', error)
+    } else if (data) {
+      setPointsPerEuro(data.value)
+    }
+  }
+
+  const updatePointsPerEuro = async () => {
+    setSavingSettings(true)
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .update({ value: pointsPerEuro })
+        .eq('key', 'points_per_euro')
+
+      if (error) throw error
+
+      toast({
+        title: "Einstellungen gespeichert",
+        description: "Das Punkteverhältnis wurde erfolgreich aktualisiert."
+      })
+    } catch (error) {
+      console.error('Error updating settings:', error)
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Einstellungen konnten nicht gespeichert werden."
+      })
+    } finally {
+      setSavingSettings(false)
+    }
   }
 
   const addPoints = async (e: React.FormEvent) => {
@@ -569,57 +614,61 @@ export function AdminDashboard() {
     }
   }
 
-  const addPointsToScannedCustomer = async (points: number) => {
-    if (!scannedCustomerId || !scannedCustomer) return
+  const awardPointsForPurchase = async (amount: number) => {
+    if (!scannedCustomerId || !scannedCustomer || amount <= 0) return
 
-    setLoading(true)
+    setProcessingPurchase(true)
     try {
-      // Add transaction
-      const { error: transactionError } = await supabase
-        .from('transactions')
-        .insert([
-          {
-            customer_id: scannedCustomerId,
-            type: 'purchase',
-            points_earned: points,
-            amount: 0,
-            description: `POS +${points} Punkte`
-          }
-        ])
+      const scanUuid = crypto.randomUUID()
+      
+      const { data, error } = await supabase.functions.invoke('award-points', {
+        body: {
+          customer_id: scannedCustomerId,
+          amount,
+          description: 'POS Einkauf',
+          scan_uuid: scanUuid
+        }
+      })
 
-      if (transactionError) throw transactionError
+      if (error) throw error
 
-      // Update customer points
-      const { error: customerError } = await supabase
-        .from('customers')
-        .update({ 
-          points: scannedCustomer.points + points,
-          total_points: scannedCustomer.total_points + points,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', scannedCustomerId)
-
-      if (customerError) throw customerError
+      if (!data.success) {
+        throw new Error(data.error || 'Unbekannter Fehler')
+      }
 
       toast({
-        title: "Punkte hinzugefügt",
-        description: `${points} Punkte wurden ${scannedCustomer.name} gutgeschrieben. Neuer Punktestand: ${scannedCustomer.points + points}`
+        title: "Punkte vergeben!",
+        description: `+${data.points_awarded} Punkte für ${amount.toFixed(2)} € Einkauf vergeben. Neuer Punktestand: ${data.new_points_balance} Punkte.`
       })
 
       // Refresh data and reset scanner
       await fetchData()
       setScannedCustomerId(null)
       setScannedCustomer(null)
+      setPurchaseAmount('')
     } catch (error) {
-      console.error('Error adding points:', error)
+      console.error('Error awarding points:', error)
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: error instanceof Error ? error.message : "Fehler beim Hinzufügen der Punkte."
+        description: error instanceof Error ? error.message : "Fehler beim Vergeben der Punkte."
       })
     } finally {
-      setLoading(false)
+      setProcessingPurchase(false)
     }
+  }
+
+  const handleProcessPurchase = () => {
+    const amount = parseFloat(purchaseAmount)
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Ungültiger Betrag",
+        description: "Bitte geben Sie einen gültigen Einkaufsbetrag ein."
+      })
+      return
+    }
+    awardPointsForPurchase(amount)
   }
 
   if (loading) {
@@ -681,7 +730,7 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="claims">Claims ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
@@ -689,6 +738,7 @@ export function AdminDashboard() {
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
+            <TabsTrigger value="settings">Einstellungen</TabsTrigger>
           </TabsList>
 
           <TabsContent value="customers">
@@ -1257,49 +1307,34 @@ export function AdminDashboard() {
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label>Schnell-Aktionen</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => addPointsToScannedCustomer(10)}
-                            disabled={loading}
-                            className="w-full"
-                          >
-                            +10 Punkte
-                          </Button>
-                          <Button 
-                            onClick={() => addPointsToScannedCustomer(20)}
-                            disabled={loading}
-                            variant="outline"
-                            className="w-full"
-                          >
-                            +20 Punkte
-                          </Button>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="purchase-amount">Einkaufsbetrag in €</Label>
+                          <Input
+                            id="purchase-amount"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={purchaseAmount}
+                            onChange={(e) => setPurchaseAmount(e.target.value)}
+                            disabled={processingPurchase}
+                          />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={() => addPointsToScannedCustomer(50)}
-                            disabled={loading}
-                            variant="outline"
-                            className="w-full"
-                          >
-                            +50 Punkte
-                          </Button>
-                          <Button 
-                            onClick={() => addPointsToScannedCustomer(100)}
-                            disabled={loading}
-                            variant="outline"
-                            className="w-full"
-                          >
-                            +100 Punkte
-                          </Button>
-                        </div>
+                        <Button
+                          onClick={handleProcessPurchase}
+                          disabled={processingPurchase || !purchaseAmount}
+                          className="w-full"
+                        >
+                          {processingPurchase ? 'Verarbeite...' : 'Punkte vergeben'}
+                        </Button>
                       </div>
 
                       <Button 
                         onClick={() => {
                           setScannedCustomerId(null)
                           setScannedCustomer(null)
+                          setPurchaseAmount('')
                         }}
                         variant="ghost"
                         className="w-full"
@@ -1542,6 +1577,57 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Systemeinstellungen</CardTitle>
+                <CardDescription>
+                  Verwalten Sie die Grundeinstellungen Ihres Loyalty-Programms
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="points-per-euro">Punkte pro Euro</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="points-per-euro"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={pointsPerEuro}
+                        onChange={(e) => setPointsPerEuro(e.target.value)}
+                        disabled={savingSettings}
+                        className="max-w-xs"
+                      />
+                      <Button 
+                        onClick={updatePointsPerEuro}
+                        disabled={savingSettings}
+                        size="sm"
+                      >
+                        {savingSettings ? 'Speichere...' : 'Speichern'}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Definiert, wie viele Punkte pro Euro Einkaufswert vergeben werden. 
+                      Beispiel: 1.0 = 1 Punkt pro Euro, 0.5 = 0.5 Punkte pro Euro
+                    </p>
+                  </div>
+                  
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold mb-2">Aktuelle Konfiguration:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Pro 1€ Einkauf werden <strong>{pointsPerEuro}</strong> Punkte vergeben.
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Beispiel: Bei einem Einkauf von 25€ erhält der Kunde {(25 * parseFloat(pointsPerEuro)).toFixed(0)} Punkte.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

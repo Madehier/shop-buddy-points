@@ -226,6 +226,33 @@ export type Database = {
         }
         Relationships: []
       }
+      settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -236,6 +263,7 @@ export type Database = {
           id: string
           points_earned: number
           reward_id: string | null
+          scan_uuid: string | null
           type: string | null
         }
         Insert: {
@@ -247,6 +275,7 @@ export type Database = {
           id?: string
           points_earned: number
           reward_id?: string | null
+          scan_uuid?: string | null
           type?: string | null
         }
         Update: {
@@ -258,6 +287,7 @@ export type Database = {
           id?: string
           points_earned?: number
           reward_id?: string | null
+          scan_uuid?: string | null
           type?: string | null
         }
         Relationships: [

@@ -1,1 +1,22 @@
 project_id = "aguglmtwqjmrdoxwzygh"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+
+[db]
+port = 54322
+
+[edge_functions]
+enabled = true
+port = 54323
+
+[functions.award-points]
+verify_jwt = false
