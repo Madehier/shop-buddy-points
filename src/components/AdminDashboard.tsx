@@ -9,10 +9,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock, Filter, Eye } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Upload, Edit, Trash2, FileImage, Gift, History, CheckCircle, Clock, Filter, Eye, ShoppingBag } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
+import { Link } from 'react-router-dom'
 import { QRScanner } from '@/components/QRScanner'
 import { getRankByPoints } from '@/lib/ranks'
 
@@ -691,10 +692,18 @@ export function AdminDashboard() {
             <h1 className="text-3xl font-heading font-bold text-primary">Admin Dashboard</h1>
             <p className="text-muted-foreground">Verwalten Sie Ihr Loyalty-Programm</p>
           </div>
-          <Button variant="dorfladen" onClick={signOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Abmelden
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link to="/admin/offers" className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                Angebote verwalten
+              </Link>
+            </Button>
+            <Button variant="dorfladen" onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Abmelden
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
