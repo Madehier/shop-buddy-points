@@ -373,7 +373,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pickup_queue_view: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          item_id: string | null
+          item_type: string | null
+          pickup_code: string | null
+          points: number | null
+          qty: number | null
+          status: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_order: {
@@ -382,6 +397,10 @@ export type Database = {
       }
       admin_mark_picked_up: {
         Args: { p_order_id: string }
+        Returns: undefined
+      }
+      admin_pickup_by_code: {
+        Args: { p_code: string }
         Returns: undefined
       }
       check_and_award_badges: {
