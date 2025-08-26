@@ -7,6 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import OfferDetailModal from './OfferDetailModal';
 
+// Helper functions for EUR price handling
+const fmtEUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
 interface Offer {
   id: string;
   title: string;
@@ -216,7 +219,7 @@ export default function OffersGrid() {
                 
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-xl font-bold text-primary">
-                    {(offer.price_cents / 100).toFixed(2)} €
+                    {fmtEUR.format((offer.price_cents ?? 0) / 100)}
                   </span>
                 </div>
               </div>

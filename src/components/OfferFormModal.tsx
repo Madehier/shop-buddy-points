@@ -11,6 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { X, Upload } from 'lucide-react';
 
+// Helper functions for EUR price handling
+function parseEURToCents(input: string) {
+  let s = input.replace(/[^\d.,-]/g, '').replace(/\./g, '').replace(',', '.');
+  const v = Number(s); 
+  if (!Number.isFinite(v) || v < 0) return null;
+  return Math.round(v * 100);
+}
+
+const fmtEUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
 interface Offer {
   id: string;
   title: string;
@@ -57,6 +67,9 @@ export default function OfferFormModal({
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // Local state for EUR price input
+  const [priceEUR, setPriceEUR] = useState('');
 
   // Helper functions
   const toISO = (v: string) => (v ? new Date(v).toISOString() : null);
@@ -110,6 +123,13 @@ export default function OfferFormModal({
             sold_count: data.sold_count || 0,
             is_active: data.is_active || false,
           });
+
+          // Set EUR price display
+          setPriceEUR(
+            data.price_cents != null ? 
+            (data.price_cents / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 
+            ''
+          );
         } catch (error) {
           console.error('Error loading offer:', error);
           toast({
@@ -138,6 +158,9 @@ export default function OfferFormModal({
         sold_count: 0,
         is_active: true,
       });
+      
+      // Reset EUR price input
+      setPriceEUR('');
     }
   }, [mode, offerId, isOpen, toast]);
 
@@ -211,11 +234,6 @@ export default function OfferFormModal({
       return false;
     }
 
-    if (formData.price_cents < 0) {
-      toastErr("Eingabe prüfen");
-      return false;
-    }
-
     if (formData.limit_total < 0) {
       toastErr("Eingabe prüfen");
       return false;
@@ -239,6 +257,13 @@ export default function OfferFormModal({
     
     if (!validateForm()) return;
 
+    // Parse EUR price to cents
+    const cents = parseEURToCents(priceEUR ?? '');
+    if (cents == null) { 
+      toastErr('Bitte gültigen Preis eingeben'); 
+      return; 
+    }
+
     setIsSubmitting(true);
     try {
       const offerData = {
@@ -246,7 +271,7 @@ export default function OfferFormModal({
         subtitle: formData.subtitle.trim() || null,
         description: formData.description.trim() || null,
         hero_image_url: formData.hero_image_url.trim() || null,
-        price_cents: formData.price_cents,
+        price_cents: cents,
         pickup_date: toISO(formData.pickup_date),
         starts_at: toISO(formData.starts_at),
         ends_at: toISO(formData.ends_at),
@@ -446,22 +471,17 @@ export default function OfferFormModal({
 
               {/* Price */}
               <div className="space-y-2">
-                <Label htmlFor="price_cents">Preis</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">€</span>
-                  <Input
-                    id="price_cents"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={(formData.price_cents / 100).toFixed(2)}
-                    onChange={(e) => handleInputChange('price_cents', Math.round(parseFloat(e.target.value || '0') * 100))}
-                    placeholder="0,00"
-                    className="pl-8"
-                    data-testid="input-price-cents"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Eingabe in Euro (wird als {formData.price_cents} Cent gespeichert)</p>
+                <label className="block text-sm font-medium">Preis</label>
+                <input 
+                  type="text" 
+                  inputMode="decimal" 
+                  data-testid="input-price-eur"
+                  placeholder="z. B. 4,99" 
+                  value={priceEUR} 
+                  onChange={e => setPriceEUR(e.target.value)}
+                  className="mt-1 w-full rounded-md border px-3 py-2"
+                />
+                <small className="text-gray-500">Wird intern als Cent gespeichert</small>
               </div>
 
               {/* Limit Total */}

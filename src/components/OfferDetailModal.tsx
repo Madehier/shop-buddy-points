@@ -10,6 +10,9 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { X, LogIn } from 'lucide-react';
 
+// Helper functions for EUR price handling
+const fmtEUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+
 interface Offer {
   id: string;
   title: string;
@@ -248,7 +251,7 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
             {/* Price & Pickup */}
             <div className="space-y-2">
               <div className="text-2xl font-bold text-primary">
-                {(offer.price_cents / 100).toFixed(2)} €
+                {fmtEUR.format((offer.price_cents ?? 0) / 100)}
               </div>
               {offer.pickup_date && (
                 <p className="text-sm text-muted-foreground">
