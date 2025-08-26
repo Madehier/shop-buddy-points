@@ -341,7 +341,7 @@ export function CustomerDashboard() {
               <p className="text-muted-foreground">Willkommen, {customer.name}!</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
+          <Button variant="dorfladen-orange" onClick={handleSignOut}>
             <LogOut className="w-4 h-4 mr-2" />
             Abmelden
           </Button>

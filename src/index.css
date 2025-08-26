@@ -17,17 +17,17 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 142 25% 15%;
 
-    --primary: 142 65% 40%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 118 45% 35%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 142 20% 92%;
-    --secondary-foreground: 142 65% 25%;
+    --secondary: 25 95% 55%;
+    --secondary-foreground: 0 0% 98%;
 
     --muted: 35 15% 95%;
     --muted-foreground: 142 15% 50%;
 
-    --accent: 25 85% 65%;
-    --accent-foreground: 25 95% 15%;
+    --accent: 35 80% 60%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -39,20 +39,20 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     /* Dorfladen Brand Colors - Enhanced Palette */
-    --dorfladen-green: 142 65% 40%;
-    --dorfladen-green-foreground: 0 0% 100%;
-    --dorfladen-light-green: 142 35% 85%;
-    --dorfladen-light-green-foreground: 142 65% 25%;
+    --dorfladen-green: 118 45% 35%;
+    --dorfladen-green-foreground: 0 0% 98%;
+    --dorfladen-light-green: 118 35% 85%;
+    --dorfladen-light-green-foreground: 118 45% 25%;
     
-    /* Secondary Brand Colors */
-    --dorfladen-orange: 25 85% 65%;
-    --dorfladen-orange-foreground: 25 95% 15%;
-    --dorfladen-blue: 210 65% 55%;
-    --dorfladen-blue-foreground: 210 95% 15%;
+    /* Secondary Brand Colors - Rich Orange and Warm Brown */
+    --dorfladen-orange: 25 95% 55%;
+    --dorfladen-orange-foreground: 0 0% 98%;
+    --dorfladen-brown: 28 35% 45%;
+    --dorfladen-brown-foreground: 0 0% 98%;
     
     /* Warm accent color */
-    --dorfladen-warm: 45 75% 68%;
-    --dorfladen-warm-foreground: 45 85% 20%;
+    --dorfladen-warm: 35 80% 60%;
+    --dorfladen-warm-foreground: 0 0% 98%;
     
     --success: 142 70% 42%;
     --success-foreground: 0 0% 100%;
@@ -133,6 +133,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -144,11 +145,20 @@ All colors MUST be HSL.
   }
   
   h2 {
-    @apply text-2xl font-semibold;
+    @apply text-2xl font-medium;
   }
   
   h3 {
     @apply text-xl font-medium;
+  }
+
+  /* Add font family definitions */
+  .font-heading {
+    font-family: 'Quicksand', sans-serif;
+  }
+
+  .font-body {
+    font-family: 'Quicksand', system-ui, -apple-system, sans-serif;
   }
 }
 

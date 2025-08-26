@@ -18,11 +18,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Dorfladen branded variants
-        dorfladen: "bg-dorfladen-green text-dorfladen-green-foreground hover:bg-dorfladen-green/90 shadow-md hover:shadow-lg",
-        "dorfladen-orange": "bg-dorfladen-orange text-dorfladen-orange-foreground hover:bg-dorfladen-orange/90 shadow-md hover:shadow-lg",
-        "dorfladen-blue": "bg-dorfladen-blue text-dorfladen-blue-foreground hover:bg-dorfladen-blue/90 shadow-md hover:shadow-lg",
-        "dorfladen-warm": "bg-dorfladen-warm text-dorfladen-warm-foreground hover:bg-dorfladen-warm/90 shadow-md hover:shadow-lg",
+        // Dorfladen branded variants - more prominent
+        dorfladen: "bg-dorfladen-green text-dorfladen-green-foreground hover:bg-dorfladen-green/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all",
+        "dorfladen-orange": "bg-dorfladen-orange text-dorfladen-orange-foreground hover:bg-dorfladen-orange/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all",
+        "dorfladen-brown": "bg-dorfladen-brown text-dorfladen-brown-foreground hover:bg-dorfladen-brown/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all",
+        "dorfladen-warm": "bg-dorfladen-warm text-dorfladen-warm-foreground hover:bg-dorfladen-warm/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all",
         success: "bg-success text-success-foreground hover:bg-success/90 shadow-md hover:shadow-lg",
       },
       size: {

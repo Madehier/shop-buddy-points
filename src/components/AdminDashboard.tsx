@@ -691,7 +691,7 @@ export function AdminDashboard() {
             <h1 className="text-3xl font-heading font-bold text-primary">Admin Dashboard</h1>
             <p className="text-muted-foreground">Verwalten Sie Ihr Loyalty-Programm</p>
           </div>
-          <Button variant="outline" onClick={signOut}>
+          <Button variant="dorfladen" onClick={signOut}>
             <LogOut className="w-4 h-4 mr-2" />
             Abmelden
           </Button>
@@ -925,7 +925,7 @@ export function AdminDashboard() {
                           Alle Transaktionen dieses Kunden
                         </CardDescription>
                       </div>
-                      <Button variant="outline" onClick={() => setSelectedCustomerId(null)}>
+                      <Button variant="dorfladen-brown" onClick={() => setSelectedCustomerId(null)}>
                         <Eye className="w-4 h-4 mr-2" />
                         Zurück zur Übersicht
                       </Button>
@@ -1325,6 +1325,7 @@ export function AdminDashboard() {
                           onClick={handleProcessPurchase}
                           disabled={processingPurchase || !purchaseAmount}
                           className="w-full"
+                          variant="dorfladen"
                         >
                           {processingPurchase ? 'Verarbeite...' : 'Punkte vergeben'}
                         </Button>
