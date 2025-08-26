@@ -15,6 +15,7 @@ import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
 import { RankDisplay } from '@/components/RankDisplay'
 import { RewardCard } from '@/components/RewardCard'
 import { BadgeDisplay } from '@/components/BadgeDisplay'
+import OffersGrid from '@/components/OffersGrid'
 
 interface Customer {
   id: string
@@ -399,14 +400,24 @@ export function CustomerDashboard() {
         </div>
 
         {/* Rewards and Claims */}
-        <Tabs defaultValue="rewards" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="offers" className="w-full">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="offers">Angebote</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="active">Aktiv</TabsTrigger>
             <TabsTrigger value="badges">Meine Abzeichen</TabsTrigger>
             <TabsTrigger value="points">Punkte</TabsTrigger>
             <TabsTrigger value="history">Verlauf</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="offers" className="space-y-4">
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-heading font-semibold text-xl mb-4">🛍️ Aktuelle Angebote</h3>
+                <OffersGrid />
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="rewards" className="space-y-4">
             <div className="space-y-6">
