@@ -355,28 +355,44 @@ export function CustomerDashboard() {
             currentPoints={customer.points}
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5" />
-                Ihr QR-Code
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-white rounded-lg">
-                    <QRCodeSVG 
-                      value={customer.id} 
-                      size={150}
-                      level="M"
-                      includeMargin={true}
-                    />
+          <Card className="bg-gradient-to-br from-dorfladen-green/5 to-dorfladen-green/10 border-dorfladen-green/20">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 p-3 rounded-full bg-dorfladen-green/10">
+                    <QrCode className="w-8 h-8 text-dorfladen-green" />
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className="font-heading font-semibold text-lg text-dorfladen-green">
+                      Ihr QR-Code
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Zur Identifikation an der Kasse
+                    </p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Zeigen Sie diesen Code an der Kasse vor
-                </p>
+
+                {/* QR Code Display */}
+                <div className="text-center py-4">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-white rounded-lg shadow-sm border border-dorfladen-green/20">
+                      <QRCodeSVG 
+                        value={customer.id} 
+                        size={120}
+                        level="M"
+                        includeMargin={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="pt-3 border-t border-border/50">
+                  <p className="text-sm text-center text-muted-foreground">
+                    An der Kasse scannen lassen
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
