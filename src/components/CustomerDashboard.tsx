@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode, FileImage, Store, Gift, History, AlertCircle } from 'lucide-react'
+import { Star, LogOut, Trophy, ShoppingBag, QrCode, Store, Gift, History, AlertCircle } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logo from '@/assets/logo-dorfladen-eggenthal.png'
@@ -56,22 +56,11 @@ interface Claim {
   picked_up?: boolean
 }
 
-interface ContentBlock {
-  id: string
-  title: string
-  image_url: string | null
-  body: string
-  active: boolean
-  created_at: string
-  updated_at: string
-}
-
 export function CustomerDashboard() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [rewards, setRewards] = useState<Reward[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
-  const [activeContentBlock, setActiveContentBlock] = useState<ContentBlock | null>(null)
   const [badges, setBadges] = useState<any[]>([])
   const [customerBadges, setCustomerBadges] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,7 +73,6 @@ export function CustomerDashboard() {
       fetchTransactions()
       fetchRewards()
       fetchClaims()
-      fetchActiveContentBlock()
       fetchBadges()
       fetchCustomerBadges()
     }
@@ -169,25 +157,6 @@ export function CustomerDashboard() {
       console.error('Error fetching claims:', error)
     } else {
       setClaims((data as Claim[]) || [])
-    }
-  }
-
-  const fetchActiveContentBlock = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('content_blocks')
-        .select('*')
-        .eq('active', true)
-        .single()
-
-      if (error) {
-        console.log('No active content block found')
-        return
-      }
-
-      setActiveContentBlock(data)
-    } catch (error) {
-      console.error('Error fetching active content block:', error)
     }
   }
 
@@ -662,40 +631,6 @@ export function CustomerDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Active Content Block */}
-        {activeContentBlock && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileImage className="w-5 h-5" />
-                {activeContentBlock.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {activeContentBlock.image_url && (
-                  <div className="w-full">
-                    <img
-                      src={activeContentBlock.image_url}
-                      alt={activeContentBlock.title}
-                      className="w-full max-h-64 object-cover rounded-lg"
-                      onError={(e) => {
-                        console.error('Error loading image:', activeContentBlock.image_url);
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-muted-foreground whitespace-pre-wrap">
-                    {activeContentBlock.body}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   )
