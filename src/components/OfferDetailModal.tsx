@@ -139,10 +139,13 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
     try {
       setPurchasing(true);
       
+      // Debug logging as requested
+      console.log('reserve start', offer?.id, quantity);
       const { data, error } = await supabase.rpc('purchase_offer', {
-        p_offer_id: offer.id,
+        p_offer_id: offer!.id,
         p_qty: quantity
       });
+      console.log('reserve result', { data, error });
 
       if (error) throw error;
 
