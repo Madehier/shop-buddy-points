@@ -95,8 +95,6 @@ export function AdminDashboard() {
   const [scannedCustomer, setScannedCustomer] = useState<Customer | null>(null)
   const [purchaseAmount, setPurchaseAmount] = useState('')
   const [processingPurchase, setProcessingPurchase] = useState(false)
-  const [pointsPerEuro, setPointsPerEuro] = useState('1.0')
-  const [savingSettings, setSavingSettings] = useState(false)
   const { toast } = useToast()
   const { signOut } = useAuth()
 
@@ -110,8 +108,7 @@ export function AdminDashboard() {
       fetchRewards(),
       fetchClaims(),
       fetchTransactions(),
-      fetchStats(),
-      fetchSettings()
+      fetchStats()
     ])
     setLoading(false)
   }
@@ -190,46 +187,6 @@ export function AdminDashboard() {
       totalPoints,
       totalTransactions
     })
-  }
-
-  const fetchSettings = async () => {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('key', 'points_per_euro')
-      .single()
-
-    if (error) {
-      console.error('Error fetching settings:', error)
-    } else if (data) {
-      setPointsPerEuro(data.value)
-    }
-  }
-
-  const updatePointsPerEuro = async () => {
-    setSavingSettings(true)
-    try {
-      const { error } = await supabase
-        .from('settings')
-        .update({ value: pointsPerEuro })
-        .eq('key', 'points_per_euro')
-
-      if (error) throw error
-
-      toast({
-        title: "Einstellungen gespeichert",
-        description: "Das Punkteverhältnis wurde erfolgreich aktualisiert."
-      })
-    } catch (error) {
-      console.error('Error updating settings:', error)
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Einstellungen konnten nicht gespeichert werden."
-      })
-    } finally {
-      setSavingSettings(false)
-    }
   }
 
   const addPoints = async (e: React.FormEvent) => {
@@ -544,14 +501,13 @@ export function AdminDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="customers" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="customers">Kunden</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="claims">Gutscheine ({claims.filter(c => c.status === 'EINGELÖST').length})</TabsTrigger>
             <TabsTrigger value="history">Punkte-Historie</TabsTrigger>
             <TabsTrigger value="points">Punkte verwalten</TabsTrigger>
             <TabsTrigger value="scanner">QR-Scanner</TabsTrigger>
-            <TabsTrigger value="settings">Einstellungen</TabsTrigger>
           </TabsList>
 
           <TabsContent value="customers">
@@ -1215,58 +1171,7 @@ export function AdminDashboard() {
           </TabsContent>
 
 
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Systemeinstellungen</CardTitle>
-                <CardDescription>
-                  Verwalten Sie die Grundeinstellungen Ihres Loyalty-Programms
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="points-per-euro">Punkte pro Euro</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="points-per-euro"
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        value={pointsPerEuro}
-                        onChange={(e) => setPointsPerEuro(e.target.value)}
-                        disabled={savingSettings}
-                        className="max-w-xs"
-                      />
-                      <Button 
-                        onClick={updatePointsPerEuro}
-                        disabled={savingSettings}
-                        size="sm"
-                      >
-                        {savingSettings ? 'Speichere...' : 'Speichern'}
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Definiert, wie viele Punkte pro Euro Einkaufswert vergeben werden. 
-                      Beispiel: 1.0 = 1 Punkt pro Euro, 0.5 = 0.5 Punkte pro Euro
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted rounded-lg">
-                    <h4 className="font-semibold mb-2">Aktuelle Konfiguration:</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Pro 1€ Einkauf werden <strong>{pointsPerEuro}</strong> Punkte vergeben.
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Beispiel: Bei einem Einkauf von 25€ erhält der Kunde {(25 * parseFloat(pointsPerEuro)).toFixed(0)} Punkte.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
-
       </div>
     </div>
   )
