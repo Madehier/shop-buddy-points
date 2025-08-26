@@ -498,6 +498,12 @@ export function AdminDashboard() {
                 Angebote verwalten
               </Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin/pickups" className="flex items-center gap-2">
+                <QrCode className="w-4 h-4" />
+                Abholungen verwalten
+              </Link>
+            </Button>
             <Button variant="dorfladen" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Abmelden
