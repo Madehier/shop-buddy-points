@@ -84,6 +84,11 @@ export default function OfferFormModal({
       const loadOffer = async () => {
         setLoading(true);
         try {
+          console.debug('[OFFERS_QUERY]', { 
+            select: '*', 
+            orderByUsed: 'none (single by id)' 
+          });
+
           const { data, error } = await supabase
             .from('offers')
             .select('*')
@@ -250,6 +255,11 @@ export default function OfferFormModal({
       };
 
       if (mode === 'create') {
+        console.debug('[OFFERS_QUERY]', { 
+          select: 'insert operation', 
+          orderByUsed: 'none' 
+        });
+
         const { error } = await supabase
           .from('offers')
           .insert([offerData]);
@@ -258,6 +268,11 @@ export default function OfferFormModal({
 
         toastOk("Gespeichert");
       } else {
+        console.debug('[OFFERS_QUERY]', { 
+          select: 'update operation', 
+          orderByUsed: 'none' 
+        });
+
         const { error } = await supabase
           .from('offers')
           .update(offerData)

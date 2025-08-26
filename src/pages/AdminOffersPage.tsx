@@ -57,17 +57,22 @@ export default function AdminOffersPage() {
   const fmtDE = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' });
   const toastOk = (msg: string) => toast({ title: "Erfolg", description: msg });
   const toastErr = (msg: string) => toast({ title: "Fehler", description: msg, variant: "destructive" });
+  
+  // Map potential old "created" references to "created_at"
+  const mapOfferSort = (k: string) => (k === 'created' ? 'created_at' : k);
 
   const fetchOffers = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('offers')
-        .select(`
+      const selectFields = `
           id, title, subtitle, description, hero_image_url, 
           price_cents, pickup_date, starts_at, ends_at, 
           limit_total, sold_count, is_active, created_at
-        `, { count: 'exact' });
+        `;
+      
+      let query = supabase
+        .from('offers')
+        .select(selectFields, { count: 'exact' });
 
       // Search filter
       if (searchTerm.trim()) {
@@ -76,7 +81,16 @@ export default function AdminOffersPage() {
 
       // Sorting
       const [field, direction] = sortBy.split('_');
-      query = query.order(field, { ascending: direction === 'asc' });
+      const mappedField = mapOfferSort(field);
+      query = query.order(mappedField, { ascending: direction === 'asc' });
+
+      console.debug('[OFFERS_QUERY]', { 
+        select: selectFields.trim(), 
+        orderByUsed: `${mappedField} ${direction === 'asc' ? 'ASC' : 'DESC'}`,
+        searchTerm: searchTerm.trim() || 'none',
+        originalField: field,
+        mappedField 
+      });
 
       // Pagination
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -149,6 +163,11 @@ export default function AdminOffersPage() {
         is_active: false,
       };
 
+      console.debug('[OFFERS_QUERY]', { 
+        select: 'insert operation', 
+        orderByUsed: 'none' 
+      });
+
       const { data, error } = await supabase
         .from('offers')
         .insert([duplicatedOffer])
@@ -171,6 +190,11 @@ export default function AdminOffersPage() {
 
   const handleToggleActive = async (offerId: string, currentActive: boolean) => {
     try {
+      console.debug('[OFFERS_QUERY]', { 
+        select: 'update operation', 
+        orderByUsed: 'none' 
+      });
+
       const { error } = await supabase
         .from('offers')
         .update({ is_active: !currentActive })

@@ -35,6 +35,11 @@ export default function OffersGrid() {
 
   const fetchOffers = async () => {
     try {
+      console.debug('[OFFERS_QUERY]', { 
+        select: '*', 
+        orderByUsed: 'created_at DESC' 
+      });
+
       const { data, error } = await supabase
         .from('offers')
         .select('*')

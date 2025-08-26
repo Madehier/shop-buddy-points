@@ -54,9 +54,16 @@ export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalP
     const fetchOffer = async () => {
       setLoading(true);
       try {
+        const selectFields = 'id, title, subtitle, description, hero_image_url, price_cents, limit_total, sold_count, pickup_date, starts_at, ends_at, is_active';
+        
+        console.debug('[OFFERS_QUERY]', { 
+          select: selectFields, 
+          orderByUsed: 'none (single by id)' 
+        });
+
         const { data, error } = await supabase
           .from('offers')
-          .select('id, title, subtitle, description, hero_image_url, price_cents, limit_total, sold_count, pickup_date, starts_at, ends_at, is_active')
+          .select(selectFields)
           .eq('id', offerId)
           .single();
 
