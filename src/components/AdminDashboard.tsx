@@ -925,7 +925,7 @@ export function AdminDashboard() {
                           Alle Transaktionen dieses Kunden
                         </CardDescription>
                       </div>
-                      <Button variant="dorfladen-brown" onClick={() => setSelectedCustomerId(null)}>
+                      <Button variant="dorfladen" onClick={() => setSelectedCustomerId(null)}>
                         <Eye className="w-4 h-4 mr-2" />
                         Zurück zur Übersicht
                       </Button>

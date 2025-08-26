@@ -8,121 +8,106 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 35 20% 98%;
-    --foreground: 142 25% 15%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 142 25% 15%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 142 25% 15%;
+    --popover-foreground: 0 0% 15%;
 
     --primary: 118 45% 35%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 25 95% 55%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 35 15% 95%;
-    --muted-foreground: 142 15% 50%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 35 80% 60%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 118 25% 90%;
+    --accent-foreground: 118 45% 35%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 142 15% 88%;
-    --input: 142 15% 88%;
-    --ring: 142 65% 40%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 118 45% 35%;
 
     --radius: 0.75rem;
 
-    /* Dorfladen Brand Colors - Enhanced Palette */
+    /* Dorfladen Brand Colors - Clean Palette */
     --dorfladen-green: 118 45% 35%;
     --dorfladen-green-foreground: 0 0% 98%;
-    --dorfladen-light-green: 118 35% 85%;
+    --dorfladen-light-green: 118 25% 90%;
     --dorfladen-light-green-foreground: 118 45% 25%;
     
-    /* Secondary Brand Colors - Rich Orange and Warm Brown */
-    --dorfladen-orange: 25 95% 55%;
+    /* Orange nur als dezenter Akzent */
+    --dorfladen-orange: 25 85% 60%;
     --dorfladen-orange-foreground: 0 0% 98%;
-    --dorfladen-brown: 28 35% 45%;
-    --dorfladen-brown-foreground: 0 0% 98%;
     
-    /* Warm accent color */
-    --dorfladen-warm: 35 80% 60%;
-    --dorfladen-warm-foreground: 0 0% 98%;
-    
-    --success: 142 70% 42%;
+    --success: 118 45% 35%;
     --success-foreground: 0 0% 100%;
-    
-    /* Natural/organic gradients */
-    --gradient-nature: linear-gradient(135deg, hsl(var(--dorfladen-green)), hsl(var(--dorfladen-light-green)));
-    --gradient-warm: linear-gradient(135deg, hsl(var(--dorfladen-orange)), hsl(var(--dorfladen-warm)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--dorfladen-green)), hsl(var(--dorfladen-blue)));
 
-    --sidebar-background: 35 20% 98%;
-    --sidebar-foreground: 142 25% 15%;
-    --sidebar-primary: 142 65% 40%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 118 45% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142 20% 92%;
-    --sidebar-accent-foreground: 142 65% 25%;
-    --sidebar-border: 142 15% 88%;
-    --sidebar-ring: 142 65% 40%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 118 45% 35%;
   }
 
   .dark {
-    --background: 142 25% 8%;
-    --foreground: 35 20% 95%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 142 25% 10%;
-    --card-foreground: 35 20% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 142 25% 10%;
-    --popover-foreground: 35 20% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 142 60% 55%;
-    --primary-foreground: 142 25% 8%;
+    --primary: 118 60% 55%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 142 25% 15%;
-    --secondary-foreground: 35 20% 95%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 142 25% 15%;
-    --muted-foreground: 142 15% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 25 80% 70%;
-    --accent-foreground: 25 95% 10%;
+    --accent: 118 25% 25%;
+    --accent-foreground: 118 60% 85%;
 
     --destructive: 0 75% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 142 25% 20%;
-    --input: 142 25% 20%;
-    --ring: 142 60% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 118 60% 55%;
 
     /* Dark mode dorfladen colors */
-    --dorfladen-green: 142 60% 55%;
-    --dorfladen-green-foreground: 142 25% 8%;
-    --dorfladen-light-green: 142 35% 25%;
-    --dorfladen-light-green-foreground: 142 60% 85%;
-    --dorfladen-orange: 25 80% 70%;
-    --dorfladen-orange-foreground: 25 95% 10%;
-    --dorfladen-blue: 210 60% 65%;
-    --dorfladen-blue-foreground: 210 95% 10%;
-    --dorfladen-warm: 45 70% 72%;
-    --dorfladen-warm-foreground: 45 85% 15%;
-    --success: 142 65% 50%;
-    --success-foreground: 142 25% 8%;
+    --dorfladen-green: 118 60% 55%;
+    --dorfladen-green-foreground: 0 0% 8%;
+    --dorfladen-light-green: 118 25% 25%;
+    --dorfladen-light-green-foreground: 118 60% 85%;
+    --dorfladen-orange: 25 70% 65%;
+    --dorfladen-orange-foreground: 0 0% 10%;
+    --success: 118 60% 55%;
+    --success-foreground: 0 0% 8%;
 
-    --sidebar-background: 142 25% 8%;
-    --sidebar-foreground: 35 20% 95%;
-    --sidebar-primary: 142 60% 55%;
-    --sidebar-primary-foreground: 142 25% 8%;
-    --sidebar-accent: 142 25% 15%;
-    --sidebar-accent-foreground: 35 20% 95%;
-    --sidebar-border: 142 25% 20%;
-    --sidebar-ring: 142 60% 55%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 118 60% 55%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 118 60% 55%;
   }
 }
 
