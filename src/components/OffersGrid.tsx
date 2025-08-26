@@ -26,8 +26,7 @@ interface Offer {
 export default function OffersGrid() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchOffers = async () => {
@@ -99,8 +98,7 @@ export default function OffersGrid() {
   };
 
   const handleCardClick = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setModalOpen(true);
+    setSelectedOfferId(offer.id);
   };
 
   const SkeletonCard = () => (
@@ -215,9 +213,8 @@ export default function OffersGrid() {
 
       {/* Detail Modal */}
       <OfferDetailModal
-        offer={selectedOffer}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
+        offerId={selectedOfferId}
+        onClose={() => setSelectedOfferId(null)}
       />
     </>
   );
