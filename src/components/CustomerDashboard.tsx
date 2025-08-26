@@ -16,6 +16,7 @@ import { RankDisplay } from '@/components/RankDisplay'
 import { RewardCard } from '@/components/RewardCard'
 import { BadgeDisplay } from '@/components/BadgeDisplay'
 import OffersGrid from '@/components/OffersGrid'
+import { PickupsList } from '@/components/PickupsList'
 
 interface Customer {
   id: string
@@ -373,7 +374,7 @@ export function CustomerDashboard() {
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="offers">Angebote</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
-            <TabsTrigger value="active">Aktiv</TabsTrigger>
+            <TabsTrigger value="active">Abholungen</TabsTrigger>
             <TabsTrigger value="badges">Meine Abzeichen</TabsTrigger>
             <TabsTrigger value="points">Punkte</TabsTrigger>
             <TabsTrigger value="history">Verlauf</TabsTrigger>
@@ -440,51 +441,20 @@ export function CustomerDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="w-5 h-5" />
-                  Aktive Gutscheine
+                  Abholungen
                 </CardTitle>
                 <CardDescription>
-                  Ihre eingelösten Belohnungen, die noch nicht abgeholt wurden
+                  Ihre Belohnungen und Bestellungen, die zur Abholung bereit sind
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {claims.filter(claim => !claim.picked_up).length === 0 ? (
-                  <div className="text-center py-8">
-                    <Gift className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Keine aktiven Gutscheine</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {claims.filter(claim => !claim.picked_up).map((claim) => (
-                      <Card key={claim.id} className="border-l-4 border-l-primary">
-                        <CardContent className="pt-4">
-                          <div className="flex flex-col md:flex-row md:items-center gap-4">
-                            <div className="flex-1">
-                              <h3 className="font-semibold">{claim.reward_name}</h3>
-                              <p className="text-sm text-muted-foreground">{claim.reward_description}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="secondary">
-                                  {claim.points_redeemed} Punkte eingelöst
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-center gap-2">
-                              <div className="bg-white p-2 rounded-lg border-2 border-primary/20">
-                                <QRCodeSVG 
-                                  value={claim.qr_code} 
-                                  size={80}
-                                  fgColor="#2563eb"
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground text-center">
-                                QR-Code im Laden zeigen
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                <PickupsList 
+                  userId={customer.id} 
+                  onRefresh={() => {
+                    fetchClaims()
+                    // Would also fetch orders when implemented
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
