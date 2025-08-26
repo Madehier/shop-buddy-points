@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import OfferFormModal from '@/components/OfferFormModal';
 import { format, formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 import { 
   Plus, 
   RefreshCw, 
@@ -19,7 +20,9 @@ import {
   Eye, 
   EyeOff,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Home,
+  ArrowLeft
 } from 'lucide-react';
 
 // Helper functions for EUR price handling
@@ -266,7 +269,20 @@ export default function AdminOffersPage() {
       <div className="p-6" data-ux-version="2025-08-26-ux1">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold">Angebote</h1>
+          <div className="flex items-center gap-3">
+            <Button 
+              asChild
+              variant="ghost" 
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Link to="/">
+                <ArrowLeft className="h-4 w-4" />
+                Zurück zum Dashboard
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-bold">Angebote</h1>
+          </div>
           <div className="flex gap-2">
             <Button 
               onClick={() => {
