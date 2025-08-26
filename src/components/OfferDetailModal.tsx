@@ -31,6 +31,7 @@ interface OfferDetailModalProps {
 }
 
 export default function OfferDetailModal({ offerId, onClose }: OfferDetailModalProps) {
+  console.log('OfferDetailModal rendered with offerId:', offerId);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [loading, setLoading] = useState(false);
   const [purchasing, setPurchasing] = useState(false);

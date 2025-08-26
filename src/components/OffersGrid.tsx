@@ -27,6 +27,10 @@ export default function OffersGrid() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
+  const openModal = (id: string) => { 
+    console.log('openModal', id); 
+    setSelectedOfferId(id); 
+  };
   const { toast } = useToast();
 
   const fetchOffers = async () => {
@@ -98,8 +102,7 @@ export default function OffersGrid() {
   };
 
   const handleCardClick = (offer: Offer) => {
-    console.log('openModal', offer.id);
-    setSelectedOfferId(offer.id);
+    openModal(offer.id);
   };
 
   const SkeletonCard = () => (
