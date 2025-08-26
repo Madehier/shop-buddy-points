@@ -98,6 +98,7 @@ export default function OffersGrid() {
   };
 
   const handleCardClick = (offer: Offer) => {
+    console.log('openModal', offer.id);
     setSelectedOfferId(offer.id);
   };
 
