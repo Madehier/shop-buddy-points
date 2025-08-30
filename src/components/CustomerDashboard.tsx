@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Star, LogOut, Trophy, ShoppingBag, QrCode, Store, Gift, History, AlertCircle } from 'lucide-react'
+import { LogOut, Trophy, ShoppingBag, QrCode, Store, Gift, History, AlertCircle, ShoppingCart, Package, Award } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logo from '@/assets/logo-dorfladen-eggenthal.png'
@@ -17,6 +17,7 @@ import { RewardCard } from '@/components/RewardCard'
 import { BadgeDisplay } from '@/components/BadgeDisplay'
 import OffersGrid from '@/components/OffersGrid'
 import { PickupsList } from '@/components/PickupsList'
+import { PreorderTab } from '@/components/PreorderTab'
 
 interface Customer {
   id: string
@@ -371,11 +372,12 @@ export function CustomerDashboard() {
 
         {/* Rewards and Claims */}
         <Tabs defaultValue="offers" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="offers">Angebote</TabsTrigger>
+            <TabsTrigger value="preorders">Vorbestellen</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="active">Abholungen</TabsTrigger>
-            <TabsTrigger value="badges">Meine Abzeichen</TabsTrigger>
+            <TabsTrigger value="badges">Abzeichen</TabsTrigger>
             <TabsTrigger value="points">Punkte</TabsTrigger>
             <TabsTrigger value="history">Verlauf</TabsTrigger>
           </TabsList>
@@ -387,6 +389,10 @@ export function CustomerDashboard() {
                 <OffersGrid />
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="preorders" className="space-y-4">
+            <PreorderTab />
           </TabsContent>
 
           <TabsContent value="rewards" className="space-y-4">

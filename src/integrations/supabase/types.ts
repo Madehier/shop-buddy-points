@@ -252,6 +252,112 @@ export type Database = {
           },
         ]
       }
+      preorder_items: {
+        Row: {
+          id: string
+          preorder_id: string
+          product_id: string
+          product_name_cache: string
+          qty_int: number
+        }
+        Insert: {
+          id?: string
+          preorder_id: string
+          product_id: string
+          product_name_cache: string
+          qty_int: number
+        }
+        Update: {
+          id?: string
+          preorder_id?: string
+          product_id?: string
+          product_name_cache?: string
+          qty_int?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preorder_items_preorder_id_fkey"
+            columns: ["preorder_id"]
+            isOneToOne: false
+            referencedRelation: "preorders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preorder_items_preorder_id_fkey"
+            columns: ["preorder_id"]
+            isOneToOne: false
+            referencedRelation: "preorders_admin_view"
+            referencedColumns: ["preorder_id"]
+          },
+          {
+            foreignKeyName: "preorder_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "preorder_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preorder_products: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          step_int: number
+          unit: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          step_int?: number
+          unit: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          step_int?: number
+          unit?: string
+        }
+        Relationships: []
+      }
+      preorders: {
+        Row: {
+          confirmed_pickup_at: string | null
+          created_at: string
+          desired_pickup_at: string | null
+          id: string
+          picked_up_at: string | null
+          ready_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          confirmed_pickup_at?: string | null
+          created_at?: string
+          desired_pickup_at?: string | null
+          id?: string
+          picked_up_at?: string | null
+          ready_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          confirmed_pickup_at?: string | null
+          created_at?: string
+          desired_pickup_at?: string | null
+          id?: string
+          picked_up_at?: string | null
+          ready_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -389,14 +495,45 @@ export type Database = {
         }
         Relationships: []
       }
+      preorders_admin_view: {
+        Row: {
+          confirmed_pickup_at: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          desired_pickup_at: string | null
+          picked_up_at: string | null
+          preorder_id: string | null
+          ready_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       admin_cancel_order: {
         Args: { p_order_id: string }
         Returns: undefined
       }
+      admin_cancel_preorder: {
+        Args: { p_preorder_id: string }
+        Returns: undefined
+      }
+      admin_confirm_preorder: {
+        Args: { p_confirmed_at?: string; p_preorder_id: string }
+        Returns: undefined
+      }
       admin_mark_picked_up: {
         Args: { p_order_id: string }
+        Returns: undefined
+      }
+      admin_mark_picked_up_preorder: {
+        Args: { p_preorder_id: string; p_when?: string }
+        Returns: undefined
+      }
+      admin_mark_ready_preorder: {
+        Args: { p_preorder_id: string; p_ready_at?: string }
         Returns: undefined
       }
       admin_pickup_by_code: {
@@ -406,6 +543,10 @@ export type Database = {
       check_and_award_badges: {
         Args: { customer_uuid: string }
         Returns: number
+      }
+      create_preorder: {
+        Args: { p_desired: string; p_items: Json }
+        Returns: string
       }
       purchase_offer: {
         Args: { p_offer_id: string; p_qty?: number }
