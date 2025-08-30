@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OfferFormModal from '@/components/OfferFormModal';
 import { format, formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -22,7 +23,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
-  ArrowLeft
+  ArrowLeft,
+  Trash2
 } from 'lucide-react';
 
 // Helper functions for EUR price handling
@@ -212,6 +214,27 @@ export default function AdminOffersPage() {
     } catch (error: any) {
       console.error('Error toggling offer status:', error);
       toastErr("Status konnte nicht geändert werden.");
+    }
+  };
+
+  const handleDelete = async (offerId: string, offerTitle: string) => {
+    try {
+      console.debug('[OFFERS_QUERY]', { 
+        select: 'delete operation', 
+        orderByUsed: 'none' 
+      });
+
+      const { error } = await supabase
+        .from('offers')
+        .delete()
+        .eq('id', offerId);
+
+      if (error) throw error;
+
+      toastOk(`Angebot "${offerTitle}" wurde gelöscht.`);
+    } catch (error: any) {
+      console.error('Error deleting offer:', error);
+      toastErr("Angebot konnte nicht gelöscht werden.");
     }
   };
 
@@ -442,6 +465,33 @@ export default function AdminOffersPage() {
                                 <Eye className="h-4 w-4" />
                               )}
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Angebot löschen</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Sind Sie sicher, dass Sie das Angebot "{offer.title}" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => handleDelete(offer.id, offer.title)}
+                                  >
+                                    Löschen
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
