@@ -300,26 +300,38 @@ export type Database = {
       }
       preorder_products: {
         Row: {
+          avg_lead_time_minutes: number | null
           created_at: string
+          description: string | null
           id: string
           is_active: boolean
           name: string
+          photo_url: string | null
+          price_cents: number | null
           step_int: number
           unit: string
         }
         Insert: {
+          avg_lead_time_minutes?: number | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
           name: string
+          photo_url?: string | null
+          price_cents?: number | null
           step_int?: number
           unit: string
         }
         Update: {
+          avg_lead_time_minutes?: number | null
           created_at?: string
+          description?: string | null
           id?: string
           is_active?: boolean
           name?: string
+          photo_url?: string | null
+          price_cents?: number | null
           step_int?: number
           unit?: string
         }
