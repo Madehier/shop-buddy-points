@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Search, Scan, Package, Gift, Calendar, User, Hash } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, Scan, Package, Gift, Calendar, User, Hash, ArrowLeft } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface PickupItem {
@@ -194,7 +195,20 @@ export default function AdminPickupsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-heading font-bold">Abholungen</h1>
+        <div className="flex items-center gap-3">
+          <Button 
+            asChild
+            variant="ghost" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4" />
+              Zurück zum Dashboard
+            </Link>
+          </Button>
+          <h1 className="text-3xl font-heading font-bold">Abholungen</h1>
+        </div>
         <div className="flex items-center gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
