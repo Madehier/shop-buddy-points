@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { LogOut, Trophy, ShoppingBag, QrCode, Store, Gift, History, AlertCircle, ShoppingCart, Package, Award } from 'lucide-react'
+import { LogOut, Trophy, ShoppingBag, QrCode, Store, Gift, History, AlertCircle, ShoppingCart, Package } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import logo from '@/assets/logo-dorfladen-eggenthal.png'
@@ -14,7 +14,6 @@ import { QRCodeSVG } from 'qrcode.react'
 import { getRankByPoints, getPointsToNextRank } from '@/lib/ranks'
 import { RankDisplay } from '@/components/RankDisplay'
 import { RewardCard } from '@/components/RewardCard'
-import { BadgeDisplay } from '@/components/BadgeDisplay'
 import OffersGrid from '@/components/OffersGrid'
 import { PickupsList } from '@/components/PickupsList'
 import { PreorderTab } from '@/components/PreorderTab'
@@ -63,8 +62,6 @@ export function CustomerDashboard() {
   const [rewards, setRewards] = useState<Reward[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
-  const [badges, setBadges] = useState<any[]>([])
-  const [customerBadges, setCustomerBadges] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const { user, signOut } = useAuth()
   const { toast } = useToast()
@@ -75,8 +72,6 @@ export function CustomerDashboard() {
       fetchTransactions()
       fetchRewards()
       fetchClaims()
-      fetchBadges()
-      fetchCustomerBadges()
     }
   }, [user])
 
@@ -162,45 +157,6 @@ export function CustomerDashboard() {
     }
   }
 
-  const fetchBadges = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('badges')
-        .select('*')
-        .eq('active', true)
-        .order('name')
-
-      if (error) {
-        console.error('Error fetching badges:', error)
-        return
-      }
-
-      setBadges(data || [])
-    } catch (error) {
-      console.error('Error fetching badges:', error)
-    }
-  }
-
-  const fetchCustomerBadges = async () => {
-    if (!user) return
-    
-    try {
-      const { data, error } = await supabase
-        .from('customer_badges')
-        .select('*, badges!inner(*)')
-        .eq('customer_id', user.id)
-        .order('unlocked_at', { ascending: false })
-
-      if (error) {
-        console.error('Error fetching customer badges:', error)
-        return
-      }
-
-      setCustomerBadges(data || [])
-    } catch (error) {
-      console.error('Error fetching customer badges:', error)
-    }
-  }
 
   const redeemReward = async (reward: Reward) => {
     if (!customer || customer.points < reward.points_required) {
@@ -372,12 +328,11 @@ export function CustomerDashboard() {
 
         {/* Rewards and Claims */}
         <Tabs defaultValue="offers" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="offers">Angebote</TabsTrigger>
             <TabsTrigger value="preorders">Vorbestellen</TabsTrigger>
             <TabsTrigger value="rewards">Belohnungen</TabsTrigger>
             <TabsTrigger value="active">Abholungen</TabsTrigger>
-            <TabsTrigger value="badges">Abzeichen</TabsTrigger>
             <TabsTrigger value="points">Punkte</TabsTrigger>
             <TabsTrigger value="history">Verlauf</TabsTrigger>
           </TabsList>
@@ -465,25 +420,6 @@ export function CustomerDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="badges" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Meine Abzeichen
-                </CardTitle>
-                <CardDescription>
-                  Ihre freigeschalteten Erfolge und Abzeichen
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BadgeDisplay 
-                  badges={badges} 
-                  unlockedBadges={customerBadges.map(cb => cb.badge_id)}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="points" className="space-y-4">
             <Card>
