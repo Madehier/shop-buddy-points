@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Edit, Trash2, Gift, History, CheckCircle, Clock, Filter, Eye, ShoppingBag, Package, ShoppingCart } from 'lucide-react'
+import { Users, Plus, Settings, TrendingUp, Euro, Star, QrCode, LogOut, Edit, Trash2, Gift, History, CheckCircle, Clock, Filter, Eye, ShoppingBag, Package, ShoppingCart, Utensils } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
@@ -465,6 +465,12 @@ export function AdminDashboard() {
               <Link to="/admin/preorders" className="flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4" />
                 Vorbestellungen verwalten
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/admin/preorder-products" className="flex items-center gap-2">
+                <Utensils className="w-4 h-4" />
+                Produkte verwalten
               </Link>
             </Button>
             <Button variant="dorfladen" onClick={signOut}>

@@ -13,8 +13,12 @@ import { de } from 'date-fns/locale';
 interface PreorderProduct {
   id: string;
   name: string;
+  description?: string;
   unit: 'per_100g' | 'per_portion';
   step_int: number;
+  price_cents?: number;
+  avg_lead_time_minutes?: number;
+  photo_url?: string;
   is_active: boolean;
 }
 
@@ -166,6 +170,26 @@ export function PreorderTab() {
     return `x${qty}`;
   };
 
+  const formatPrice = (priceCents?: number, unit?: string) => {
+    if (!priceCents) return '';
+    const formatter = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+    const priceText = formatter.format(priceCents / 100);
+    
+    if (unit === 'per_100g') {
+      return `${priceText} pro 100 g`;
+    }
+    return `${priceText} pro Portion`;
+  };
+
+  const formatLeadTime = (minutes?: number) => {
+    if (!minutes) return '';
+    if (minutes < 60) return `Ø Vorlaufzeit: ~ ${minutes} Min.`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) return `Ø Vorlaufzeit: ~ ${hours} Std.`;
+    return `Ø Vorlaufzeit: ~ ${hours} Std. ${remainingMinutes} Min.`;
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       requested: { label: 'Angefragt', variant: 'secondary' as const },
@@ -199,11 +223,38 @@ export function PreorderTab() {
             {products.map((product) => (
               <Card key={product.id} className="p-4">
                 <div className="flex flex-col space-y-3">
+                  {/* Product Image */}
+                  {product.photo_url && (
+                    <img 
+                      src={product.photo_url} 
+                      alt={product.name}
+                      className="w-full h-32 rounded object-cover"
+                    />
+                  )}
+                  
                   <div>
                     <h4 className="font-medium">{product.name}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    {product.description && (
+                      <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
+                    )}
+                    
+                    {/* Price */}
+                    {product.price_cents && (
+                      <p className="text-sm font-medium text-primary">
+                        {formatPrice(product.price_cents, product.unit)}
+                      </p>
+                    )}
+                    
+                    {/* Lead Time */}
+                    {product.avg_lead_time_minutes && (
+                      <p className="text-sm text-muted-foreground">
+                        {formatLeadTime(product.avg_lead_time_minutes)}
+                      </p>
+                    )}
+                    
+                    <p className="text-sm text-muted-foreground mt-2">
                       {product.unit === 'per_100g' 
-                        ? 'Menge (in Gramm, Schritte á 100 g)' 
+                        ? `Schrittweite: ${product.step_int} g` 
                         : 'Portionen'}
                     </p>
                   </div>

@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import AdminOffersPage from "./pages/AdminOffersPage";
 import AdminPickupsPage from "./pages/AdminPickupsPage";
 import AdminPreordersPage from "./pages/AdminPreordersPage";
+import AdminPreorderProductsPage from "./pages/AdminPreorderProductsPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
         <Route path="/admin/offers" element={<AdminOffersPage />} />
         <Route path="/admin/pickups" element={<AdminPickupsPage />} />
         <Route path="/admin/preorders" element={<AdminPreordersPage />} />
+        <Route path="/admin/preorder-products" element={<AdminPreorderProductsPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
