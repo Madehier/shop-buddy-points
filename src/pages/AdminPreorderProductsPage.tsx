@@ -171,17 +171,28 @@ export default function AdminPreorderProductsPage() {
 
   const handleDelete = async (productId: string, productName: string) => {
     try {
+      console.log('Attempting to delete product:', productId, productName);
+      
       const { error } = await supabase
         .from('preorder_products')
         .delete()
         .eq('id', productId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
 
+      console.log('Product deleted successfully');
       toastOk(`Produkt "${productName}" wurde gelöscht.`);
+      fetchProducts(); // Refresh the list
     } catch (error: any) {
       console.error('Error deleting product:', error);
-      toastErr("Produkt konnte nicht gelöscht werden.");
+      if (error.message?.includes('permission denied')) {
+        toastErr("Keine Berechtigung zum Löschen. Stellen Sie sicher, dass Sie als Admin angemeldet sind.");
+      } else {
+        toastErr(`Produkt konnte nicht gelöscht werden: ${error.message || 'Unbekannter Fehler'}`);
+      }
     }
   };
 
