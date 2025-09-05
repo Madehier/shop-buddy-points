@@ -6,6 +6,7 @@ import { AdminDashboard } from '@/components/AdminDashboard'
 import { SplashScreen } from '@/components/SplashScreen'
 
 const Index = () => {
+  console.log('📄 Index component rendering...')
   const { user, loading } = useAuth()
   const [showSplash, setShowSplash] = useState(false)
   const [dashboardReady, setDashboardReady] = useState(false)
